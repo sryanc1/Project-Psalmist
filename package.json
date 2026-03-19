@@ -11,7 +11,8 @@
     "opensheetmusicdisplay": "^1.8.9"
   },
   "devDependencies": {
-    "vite": "^6.2.2"
+    "vite": "^6.2.2",
+    "vite-plugin-pwa": "^1.2.0"
   },
   "overrides": {
     "tar": "^7.4.3"

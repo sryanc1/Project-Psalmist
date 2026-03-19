@@ -1,0 +1,38 @@
+/* ── Login ── */
+.login-card {
+  max-width: 400px;
+  margin: 0 auto;
+}
+
+.login-body {
+  padding: 2rem;
+  text-align: center;
+}
+
+.login-body h2 {
+  font-family: var(--font-serif);
+  font-weight: 400;
+  color: var(--color-charcoal);
+}
+
+.login-body p {
+  color: var(--color-smoke);
+  font-size: 0.9rem;
+  line-height: 1.6;
+}
+
+.login-body .btn {
+  width: 100%;
+  padding: 0.75rem;
+  font-size: 0.85rem;
+}
+
+.login-error {
+  margin-top: 1rem;
+  padding: 0.75rem;
+  background: #FEF2F2;
+  border: 0.5px solid #FCA5A5;
+  border-radius: var(--radius-md);
+  color: #B91C1C;
+  font-size: 0.8rem;
+}

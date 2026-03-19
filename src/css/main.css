@@ -1,0 +1,242 @@
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;1,400&family=DM+Sans:wght@400;500;600&display=swap');
+
+/* ── Design Tokens ── */
+:root {
+  --color-charcoal:   #1C1C1A;
+  --color-ivory:      #FDFAF5;
+  --color-parchment:  #F5F0E8;
+  --color-candlelight:#C8860A;
+  --color-smoke:      #4A4845;
+  --color-border:     #D4CFC4;
+  --color-muted:      #9A9690;
+
+  --font-serif: 'Playfair Display', 'Palatino Linotype', Georgia, serif;
+  --font-sans:  'DM Sans', 'Helvetica Neue', sans-serif;
+
+  --radius-sm: 3px;
+  --radius-md: 6px;
+  --radius-lg: 8px;
+
+  --transition: 0.15s ease;
+}
+
+/* ── Reset ── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html { font-size: 16px; }
+
+body {
+  font-family: var(--font-sans);
+  background-color: var(--color-parchment);
+  color: var(--color-charcoal);
+  line-height: 1.6;
+  min-height: 100vh;
+}
+
+/* ── Typography ── */
+h1, h2, h3 {
+  font-family: var(--font-serif);
+  font-weight: 400;
+  letter-spacing: 0.02em;
+}
+
+h1 { font-size: 2rem; }
+h2 { font-size: 1.5rem; }
+h3 { font-size: 1.25rem; }
+
+p { color: var(--color-smoke); }
+
+a {
+  color: var(--color-candlelight);
+  text-decoration: none;
+  transition: opacity var(--transition);
+}
+a:hover { opacity: 0.75; }
+
+/* ── Layout ── */
+.container {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 0 1.5rem;
+}
+
+/* ── App Header ── */
+.app-header {
+  background: var(--color-charcoal);
+  padding: 1rem 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.app-header .app-name {
+  font-family: var(--font-serif);
+  font-size: 1.5rem;
+  color: var(--color-ivory);
+  font-weight: 400;
+  letter-spacing: 0.03em;
+}
+
+/* ── Piano Accent Strip ── */
+.piano-accent {
+  height: 6px;
+  background: var(--color-charcoal);
+  display: flex;
+  gap: 1px;
+  padding: 0 4px;
+}
+.piano-accent .wk {
+  flex: 1;
+  background: var(--color-ivory);
+  border-radius: 0 0 2px 2px;
+}
+.piano-accent .bk {
+  flex: 0 0 5px;
+  background: var(--color-charcoal);
+  border: 0.5px solid #3A3835;
+  border-top: none;
+  border-radius: 0 0 1px 1px;
+  margin: 0 -2px;
+  z-index: 1;
+  position: relative;
+}
+
+/* ── Cards ── */
+.card {
+  background: var(--color-ivory);
+  border: 0.5px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+}
+
+/* ── Buttons ── */
+.btn {
+  font-family: var(--font-sans);
+  font-size: 0.75rem;
+  font-weight: 500;
+  letter-spacing: 0.05em;
+  padding: 6px 14px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: all var(--transition);
+  border: 1px solid transparent;
+}
+
+.btn-primary {
+  background: var(--color-charcoal);
+  color: var(--color-ivory);
+}
+.btn-primary:hover { opacity: 0.85; }
+
+.btn-outline {
+  background: none;
+  color: var(--color-candlelight);
+  border-color: var(--color-candlelight);
+}
+.btn-outline:hover {
+  background: var(--color-candlelight);
+  color: var(--color-ivory);
+}
+
+/* ── Tags / Badges ── */
+.tag {
+  font-family: var(--font-sans);
+  font-size: 0.65rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 3px 8px;
+  border-radius: var(--radius-sm);
+  background: var(--color-parchment);
+  color: var(--color-smoke);
+  border: 0.5px solid var(--color-border);
+}
+
+.tag-accent {
+  color: var(--color-candlelight);
+  border-color: var(--color-candlelight);
+  background: none;
+}
+
+/* ── Loading / Empty States ── */
+.state-message {
+  text-align: center;
+  padding: 3rem 1rem;
+  color: var(--color-muted);
+  font-family: var(--font-serif);
+  font-style: italic;
+  font-size: 1.1rem;
+}
+
+/* ── Utility ── */
+.text-muted  { color: var(--color-muted); }
+.text-accent { color: var(--color-candlelight); }
+.text-serif  { font-family: var(--font-serif); }
+.mt-1 { margin-top: 0.5rem; }
+.mt-2 { margin-top: 1rem; }
+.mt-3 { margin-top: 1.5rem; }
+
+/* ── Search Bar ── */
+.search-bar input {
+  width: 100%;
+  font-family: var(--font-sans);
+  font-size: 0.95rem;
+  padding: 0.75rem 1rem;
+  background: var(--color-ivory);
+  border: 0.5px solid var(--color-border);
+  border-radius: var(--radius-md);
+  color: var(--color-charcoal);
+  outline: none;
+  transition: border-color var(--transition);
+}
+.search-bar input:focus {
+  border-color: var(--color-candlelight);
+}
+.search-bar input::placeholder {
+  color: var(--color-muted);
+}
+
+/* ── Song List ── */
+.song-list {
+  border: 0.5px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  background: var(--color-ivory);
+}
+
+.song-row {
+  display: flex;
+  align-items: center;
+  padding: 0.9rem 1.25rem;
+  border-bottom: 0.5px solid var(--color-border);
+  cursor: pointer;
+  transition: background var(--transition);
+  text-decoration: none;
+}
+.song-row:last-child { border-bottom: none; }
+.song-row:hover { background: var(--color-parchment); }
+
+.song-number {
+  font-family: var(--font-sans);
+  font-size: 0.7rem;
+  color: var(--color-muted);
+  min-width: 2rem;
+}
+
+.song-title {
+  font-family: var(--font-serif);
+  font-size: 1rem;
+  color: var(--color-charcoal);
+  flex: 1;
+}
+
+.song-key {
+  font-family: var(--font-sans);
+  font-size: 0.65rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  color: var(--color-candlelight);
+  border: 0.5px solid var(--color-candlelight);
+  padding: 2px 7px;
+  border-radius: var(--radius-sm);
+}

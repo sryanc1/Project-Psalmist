@@ -8,14 +8,47 @@
     <title>Project Psalmist</title>
   </head>
   <body>
-    <div id="app">
-      <header>
-        <h1>Project Psalmist</h1>
-      </header>
-      <main id="song-list">
-        <p>Loading songs...</p>
-      </main>
+
+    <header class="app-header">
+      <span class="app-name">Project Psalmist</span>
+      <nav id="admin-nav" style="display:none;">
+        <a href="/pages/admin.html" class="btn btn-outline">Admin</a>
+      </nav>
+    </header>
+
+    <div class="piano-accent">
+      <span class="wk"></span><span class="bk"></span>
+      <span class="wk"></span><span class="bk"></span>
+      <span class="wk"></span><span class="wk"></span>
+      <span class="bk"></span><span class="wk"></span>
+      <span class="bk"></span><span class="wk"></span>
+      <span class="bk"></span><span class="wk"></span>
+      <span class="wk"></span><span class="bk"></span>
+      <span class="wk"></span><span class="bk"></span>
+      <span class="wk"></span><span class="wk"></span>
+      <span class="bk"></span><span class="wk"></span>
+      <span class="bk"></span><span class="wk"></span>
+      <span class="bk"></span><span class="wk"></span>
     </div>
+
+    <main class="container mt-3">
+
+      <div class="search-bar">
+        <input
+          type="text"
+          id="search-input"
+          placeholder="Search songs, authors, tags..."
+          autocomplete="off"
+        />
+      </div>
+
+      <div id="song-list" class="song-list mt-2">
+        <div class="state-message">Loading songs...</div>
+      </div>
+
+    </main>
+
     <script type="module" src="/js/ui.js"></script>
+
   </body>
 </html>

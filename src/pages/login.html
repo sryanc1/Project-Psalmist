@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="/css/main.css" />
+    <link rel="stylesheet" href="/css/admin.css" />
+    <title>Sign In — Project Psalmist</title>
+  </head>
+  <body>
+
+    <header class="app-header">
+      <a href="/" class="app-name">Project Psalmist</a>
+    </header>
+
+    <div class="piano-accent">
+      <span class="wk"></span><span class="bk"></span>
+      <span class="wk"></span><span class="bk"></span>
+      <span class="wk"></span><span class="wk"></span>
+      <span class="bk"></span><span class="wk"></span>
+      <span class="bk"></span><span class="wk"></span>
+      <span class="bk"></span><span class="wk"></span>
+      <span class="wk"></span><span class="bk"></span>
+      <span class="wk"></span><span class="bk"></span>
+      <span class="wk"></span><span class="wk"></span>
+      <span class="bk"></span><span class="wk"></span>
+      <span class="bk"></span><span class="wk"></span>
+      <span class="bk"></span><span class="wk"></span>
+    </div>
+
+    <main class="container">
+      <div class="login-card card mt-3">
+        <div class="login-body">
+
+          <h2>Admin Sign In</h2>
+          <p class="mt-1">
+            Sign in with your authorised Google account
+            to access the admin panel.
+          </p>
+
+          <button id="google-signin-btn" class="btn btn-primary mt-3">
+            Sign in with Google
+          </button>
+
+          <div id="login-error" class="login-error" style="display:none;">
+            Sign in failed. Please try again or contact
+            your administrator.
+          </div>
+
+        </div>
+      </div>
+    </main>
+
+    <script type="module" src="/js/login.js"></script>
+
+  </body>
+</html>

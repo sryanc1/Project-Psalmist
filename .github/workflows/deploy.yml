@@ -44,6 +44,15 @@ jobs:
           VITE_FIREBASE_MESSAGING_SENDER_ID: ${{ secrets.VITE_FIREBASE_MESSAGING_SENDER_ID }}
           VITE_FIREBASE_APP_ID: ${{ secrets.VITE_FIREBASE_APP_ID }}
 
+      - name: Debug dist contents
+        run: |
+          echo "=== dist root ==="
+          ls -la dist/
+          echo "=== dist/assets ==="
+          ls -la dist/assets/ || echo "NO ASSETS FOLDER"
+          echo "=== dist/pages ==="
+          ls -la dist/pages/ || echo "NO PAGES FOLDER"
+
       - name: Setup Pages
         uses: actions/configure-pages@v4
 

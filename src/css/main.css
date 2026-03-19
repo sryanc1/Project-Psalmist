@@ -240,3 +240,24 @@ a:hover { opacity: 0.75; }
   padding: 2px 7px;
   border-radius: var(--radius-sm);
 }
+
+/* ── Song sections ── */
+.song-section { margin-bottom: 2rem; }
+
+.song-section-header {
+  font-family: var(--font-serif);
+  font-size: 1.1rem;
+  font-weight: 400;
+  color: var(--color-smoke);
+  letter-spacing: 0.05em;
+  padding: 0 0 0.5rem;
+  margin-bottom: 0.5rem;
+  border-bottom: 0.5px solid var(--color-border);
+}
+
+.song-section-list {
+  border: 0.5px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  background: var(--color-ivory);
+}

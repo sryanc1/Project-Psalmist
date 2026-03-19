@@ -245,3 +245,21 @@
   text-transform: uppercase; color: var(--color-muted);
   margin-bottom: 8px;
 }
+
+/* ── Form row 4 cols ── */
+.form-row-4 {
+  display: grid;
+  grid-template-columns: 0.5fr 2fr 1fr 1fr;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+/* ── Song number badge in admin list ── */
+.song-number-badge {
+  font-family: var(--font-sans);
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: var(--color-muted);
+  min-width: 2rem;
+  text-align: right;
+}

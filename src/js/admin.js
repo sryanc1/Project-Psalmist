@@ -55,8 +55,9 @@ function renderSongList(songs, newId = null) {
   songListEl.innerHTML = songs
     .map(song => `
       <div class="admin-song-row ${song.id === newId ? 'new' : ''}"
-           data-id="${song.id}">
+          data-id="${song.id}">
         <span class="type-pill pill-${song.type}">${song.type}</span>
+        <span class="song-number-badge">${song.number}</span>
         <span class="admin-song-title">${song.title}</span>
         <div class="admin-song-actions">
           <button class="icon-btn edit-btn" data-id="${song.id}">Edit</button>
@@ -94,11 +95,12 @@ function openModal(song = null) {
   modalTitle.textContent = song ? 'Edit Song' : 'Add New Song'
 
   // Populate meta fields
+  document.getElementById('field-number').value = song?.number || ''
   document.getElementById('field-title').value  = song?.title  || ''
   document.getElementById('field-author').value = song?.author || ''
   document.getElementById('field-key').value    = song?.key    || ''
   document.getElementById('field-tags').value   =
-    song?.tags ? song.tags.join(', ') : ''
+  song?.tags ? song.tags.join(', ') : ''
 
   // Set type toggle
   const type = song?.type || 'chorus'
@@ -227,6 +229,7 @@ function recalculateVerseLabels() {
 
 // ── Save ──
 modalSaveBtn.addEventListener('click', async () => {
+  const number = parseInt(document.getElementById('field-number').value) || 0
   const title  = document.getElementById('field-title').value.trim()
   const author = document.getElementById('field-author').value.trim()
   const key    = document.getElementById('field-key').value
@@ -235,8 +238,9 @@ modalSaveBtn.addEventListener('click', async () => {
   const type   = document.querySelector('.type-btn.active').dataset.type
 
   // Validation
-  if (!title || stanzas.length === 0) {
+  if (!title || !number || stanzas.length === 0) {
     formError.style.display = 'block'
+    formError.textContent = 'Please add a number, title and at least one stanza.'
     return
   }
   formError.style.display = 'none'
@@ -248,7 +252,7 @@ modalSaveBtn.addEventListener('click', async () => {
   }))
 
   const songData = {
-    title, author, key, tags, type,
+    number, title, author, key, tags, type,
     lyrics: cleanStanzas,
     hasMusicXml: false
   }
@@ -259,16 +263,16 @@ modalSaveBtn.addEventListener('click', async () => {
   try {
     if (editingId) {
       await updateSong(editingId, songData)
-      // Update in local array
       const index = allSongs.findIndex(s => s.id === editingId)
       allSongs[index] = { id: editingId, ...songData }
-      allSongs.sort((a, b) => a.title.localeCompare(b.title))
+      allSongs.sort((a, b) => a.number - b.number)
       closeModal()
       renderSongList(allSongs, editingId)
     } else {
       const newId = await addSong(songData)
       const newSong = { id: newId, ...songData }
-      allSongs.unshift(newSong)  // add to top of local array
+      allSongs.unshift(newSong)
+      allSongs.sort((a, b) => a.number - b.number)
       closeModal()
       renderSongList(allSongs, newId)
     }

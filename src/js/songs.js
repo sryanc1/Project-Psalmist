@@ -9,22 +9,30 @@ import {
   doc,
   query,
   orderBy,
+  where,
   serverTimestamp
 } from 'firebase/firestore'
 
 const SONGS_COLLECTION = 'songs'
 
-// ── Get all songs (list view) ──
-export async function getSongs() {
+// ── Get songs by type ordered by number ──
+export async function getSongsByType(type) {
   const q = query(
     collection(db, SONGS_COLLECTION),
-    orderBy('title', 'asc')
+    where('type', '==', type),
+    orderBy('number', 'asc')
   )
   const snapshot = await getDocs(q)
-  return snapshot.docs.map(doc => ({
-    id: doc.id,
-    ...doc.data()
-  }))
+  return snapshot.docs.map(d => ({ id: d.id, ...d.data() }))
+}
+
+// ── Get all songs (both types) ──
+export async function getSongs() {
+  const [hymns, choruses] = await Promise.all([
+    getSongsByType('hymn'),
+    getSongsByType('chorus')
+  ])
+  return { hymns, choruses }
 }
 
 // ── Get single song (detail view) ──

@@ -3,9 +3,13 @@ import {
   collection,
   getDocs,
   getDoc,
+  addDoc,
+  updateDoc,
+  deleteDoc,
   doc,
   query,
-  orderBy
+  orderBy,
+  serverTimestamp
 } from 'firebase/firestore'
 
 const SONGS_COLLECTION = 'songs'
@@ -29,4 +33,29 @@ export async function getSong(id) {
   const snapshot = await getDoc(ref)
   if (!snapshot.exists()) return null
   return { id: snapshot.id, ...snapshot.data() }
+}
+
+// ── Add new song ──
+export async function addSong(songData) {
+  const ref = await addDoc(collection(db, SONGS_COLLECTION), {
+    ...songData,
+    createdAt: serverTimestamp(),
+    updatedAt: serverTimestamp()
+  })
+  return ref.id
+}
+
+// ── Update existing song ──
+export async function updateSong(id, songData) {
+  const ref = doc(db, SONGS_COLLECTION, id)
+  await updateDoc(ref, {
+    ...songData,
+    updatedAt: serverTimestamp()
+  })
+}
+
+// ── Delete song ──
+export async function deleteSong(id) {
+  const ref = doc(db, SONGS_COLLECTION, id)
+  await deleteDoc(ref)
 }

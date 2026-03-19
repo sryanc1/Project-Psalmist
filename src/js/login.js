@@ -6,7 +6,7 @@ const errorEl = document.getElementById('login-error')
 // ── If already signed in redirect to admin ──
 onAuthChange((user) => {
   if (user) {
-    window.location.href = '/pages/admin.html'
+    window.location.href = `${import.meta.env.BASE_URL}pages/admin.html`
   }
 })
 

@@ -38,7 +38,7 @@ export function onAuthChange(callback) {
 // ── Admin guard ──
 // Call this at the top of any admin page
 // Redirects to login if not authenticated
-export function requireAuth(redirectPath = '/pages/login.html') {
+export function requireAuth(redirectPath = `${import.meta.env.BASE_URL}pages/login.html`) {
   return new Promise((resolve) => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       unsubscribe()

@@ -3,14 +3,23 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" type="image/x-icon" href="/favicon.ico" />
     <link rel="stylesheet" href="/css/main.css" />
-    <link rel="stylesheet" href="/css/admin.css" />
-    <title>Sign In — Project Psalmist</title>
+    <title>Project Psalmist</title>
   </head>
-  <body>
+  <body class="app-body">
 
-    <header class="app-header">
-      <a href="/Project-Psalmist/" class="app-name">Project Psalmist</a>
+    <!-- ── App bar ── -->
+    <header class="app-bar">
+      <button id="drawer-toggle" class="app-bar-btn" aria-label="Open song index">
+        <span class="hamburger-line"></span>
+        <span class="hamburger-line"></span>
+        <span class="hamburger-line"></span>
+      </button>
+      <span class="app-bar-title">Project Psalmist</span>
+      <nav id="admin-nav" style="display:none;">
+        <a href="/Project-Psalmist/pages/admin.html" class="app-bar-link">Admin</a>
+      </nav>
     </header>
 
     <div class="piano-accent">
@@ -28,30 +37,55 @@
       <span class="bk"></span><span class="wk"></span>
     </div>
 
-    <main class="container">
-      <div class="login-card card mt-3">
-        <div class="login-body">
+    <!-- ── Tab bar ── -->
+    <div class="tab-bar">
+      <button class="tab-btn active" data-tab="choruses">Choruses</button>
+      <button class="tab-btn" data-tab="hymns">Hymns</button>
+    </div>
 
-          <h2>Admin Sign In</h2>
-          <p class="mt-1">
-            Sign in with your authorised Google account
-            to access the admin panel.
-          </p>
-
-          <button id="google-signin-btn" class="btn btn-primary mt-3">
-            Sign in with Google
-          </button>
-
-          <div id="login-error" class="login-error" style="display:none;">
-            Sign in failed. Please try again or contact
-            your administrator.
-          </div>
-
-        </div>
-      </div>
+    <!-- ── Carousel ── -->
+    <main class="carousel-area" id="carousel-area">
+      <div class="carousel-track" id="carousel-track"></div>
+      <button class="carousel-arrow arrow-prev" id="arrow-prev" aria-label="Previous song">&#8249;</button>
+      <button class="carousel-arrow arrow-next" id="arrow-next" aria-label="Next song">&#8250;</button>
     </main>
 
-    <script type="module" src="/js/login.js"></script>
+    <!-- ── Nav dots ── -->
+    <div class="nav-dots" id="nav-dots"></div>
+
+    <!-- ── Drawer overlay ── -->
+    <div class="drawer-overlay" id="drawer-overlay" aria-hidden="true">
+      <div class="drawer" id="drawer" role="dialog" aria-label="Song index">
+
+        <div class="drawer-head">
+          <span class="drawer-title">Song Index</span>
+          <input
+            type="text"
+            id="drawer-search"
+            class="drawer-search"
+            placeholder="Search by number or title..."
+            autocomplete="off"
+          />
+        </div>
+
+        <div class="drawer-tabs">
+          <button class="drawer-tab active" data-tab="choruses">Choruses</button>
+          <button class="drawer-tab" data-tab="hymns">Hymns</button>
+        </div>
+
+        <div class="drawer-list" id="drawer-list">
+          <div class="state-message" style="color:#9A9690;">Loading...</div>
+        </div>
+
+        <div class="drawer-footer">
+          <button id="drawer-close" class="drawer-close-btn">✕ Close</button>
+        </div>
+
+      </div>
+      <div class="drawer-backdrop" id="drawer-backdrop"></div>
+    </div>
+
+    <script type="module" src="/js/ui.js"></script>
 
   </body>
 </html>

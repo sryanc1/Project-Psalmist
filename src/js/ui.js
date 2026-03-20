@@ -9,6 +9,7 @@ onAuthStateChanged(auth, (user) => {
   if (!adminBtn) return
 
   adminBtn.style.display = 'block'
+  adminBtn.disabled = false  // ← always re-enable on auth state change
 
   if (user) {
     adminBtn.textContent = 'Admin Panel'
@@ -23,7 +24,6 @@ onAuthStateChanged(auth, (user) => {
         adminBtn.textContent = 'Signing in...'
         adminBtn.disabled = true
         await signInWithGoogle()
-        // onAuthStateChanged will fire and update the button
       } catch (err) {
         console.error('Sign in failed:', err)
         adminBtn.textContent = 'Admin Sign In'

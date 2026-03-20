@@ -9,56 +9,15 @@
   </head>
   <body class="app-body">
 
-    <!-- ── App bar ── -->
-    <header class="app-bar">
-      <button id="drawer-toggle" class="app-bar-btn" aria-label="Open song index">
-        <span class="hamburger-line"></span>
-        <span class="hamburger-line"></span>
-        <span class="hamburger-line"></span>
-      </button>
-      <span class="app-bar-title">Project Psalmist</span>
-      <nav id="admin-nav" style="display:none;">
-        <a href="/Project-Psalmist/pages/admin.html" class="app-bar-link">Admin</a>
-      </nav>
-    </header>
-
-    <div class="piano-accent">
-      <span class="wk"></span><span class="bk"></span>
-      <span class="wk"></span><span class="bk"></span>
-      <span class="wk"></span><span class="wk"></span>
-      <span class="bk"></span><span class="wk"></span>
-      <span class="bk"></span><span class="wk"></span>
-      <span class="bk"></span><span class="wk"></span>
-      <span class="wk"></span><span class="bk"></span>
-      <span class="wk"></span><span class="bk"></span>
-      <span class="wk"></span><span class="wk"></span>
-      <span class="bk"></span><span class="wk"></span>
-      <span class="bk"></span><span class="wk"></span>
-      <span class="bk"></span><span class="wk"></span>
-    </div>
-
-    <!-- ── Tab bar ── -->
-    <div class="tab-bar">
-      <button class="tab-btn active" data-tab="choruses">Choruses</button>
-      <button class="tab-btn" data-tab="hymns">Hymns</button>
-    </div>
-
-    <!-- ── Carousel ── -->
-    <main class="carousel-area" id="carousel-area">
-      <div class="carousel-track" id="carousel-track"></div>
-      <button class="carousel-arrow arrow-prev" id="arrow-prev" aria-label="Previous song">&#8249;</button>
-      <button class="carousel-arrow arrow-next" id="arrow-next" aria-label="Next song">&#8250;</button>
-    </main>
-
-    <!-- ── Nav dots ── -->
-    <div class="nav-dots" id="nav-dots"></div>
-
-    <!-- ── Drawer overlay ── -->
+    <!-- ── Drawer ── -->
     <div class="drawer-overlay" id="drawer-overlay" aria-hidden="true">
       <div class="drawer" id="drawer" role="dialog" aria-label="Song index">
 
         <div class="drawer-head">
-          <span class="drawer-title">Song Index</span>
+          <div class="drawer-header-row">
+            <span class="drawer-title">Project Psalmist</span>
+            <button id="drawer-close" class="drawer-close-btn mobile-only">✕</button>
+          </div>
           <input
             type="text"
             id="drawer-search"
@@ -78,11 +37,54 @@
         </div>
 
         <div class="drawer-footer">
-          <button id="drawer-close" class="drawer-close-btn">✕ Close</button>
+          <button id="admin-link" class="drawer-admin-btn" style="display:none;">
+            Admin Panel
+          </button>
         </div>
 
       </div>
       <div class="drawer-backdrop" id="drawer-backdrop"></div>
+    </div>
+
+    <!-- ── Main content ── -->
+    <div class="main-content">
+
+      <header class="app-bar">
+        <button id="drawer-toggle" class="app-bar-btn mobile-only" aria-label="Open song index">
+          <span class="hamburger-line"></span>
+          <span class="hamburger-line"></span>
+          <span class="hamburger-line"></span>
+        </button>
+        <span class="app-bar-title">Project Psalmist</span>
+        <div class="tab-bar">
+          <button class="tab-btn active" data-tab="choruses">Choruses</button>
+          <button class="tab-btn" data-tab="hymns">Hymns</button>
+        </div>
+      </header>
+
+      <div class="piano-accent">
+        <span class="wk"></span><span class="bk"></span>
+        <span class="wk"></span><span class="bk"></span>
+        <span class="wk"></span><span class="wk"></span>
+        <span class="bk"></span><span class="wk"></span>
+        <span class="bk"></span><span class="wk"></span>
+        <span class="bk"></span><span class="wk"></span>
+        <span class="wk"></span><span class="bk"></span>
+        <span class="wk"></span><span class="bk"></span>
+        <span class="wk"></span><span class="wk"></span>
+        <span class="bk"></span><span class="wk"></span>
+        <span class="bk"></span><span class="wk"></span>
+        <span class="bk"></span><span class="wk"></span>
+      </div>
+
+      <main class="carousel-area" id="carousel-area">
+        <div class="carousel-track" id="carousel-track"></div>
+        <button class="carousel-arrow arrow-prev" id="arrow-prev" aria-label="Previous song">&#8249;</button>
+        <button class="carousel-arrow arrow-next" id="arrow-next" aria-label="Next song">&#8250;</button>
+      </main>
+
+      <div class="nav-dots" id="nav-dots"></div>
+
     </div>
 
     <script type="module" src="/js/ui.js"></script>

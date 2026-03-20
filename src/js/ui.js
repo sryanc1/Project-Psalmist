@@ -1,102 +1,101 @@
-import { auth }              from './firebase.js'
+import { auth }               from './firebase.js'
 import { onAuthStateChanged } from 'firebase/auth'
 import { getSongIndex, getSong } from './songs.js'
 
-// ── Temporary debug — remove after fix ──
-const elements = {
-  carouselTrack:  document.getElementById('carousel-track'),
-  carouselArea:   document.getElementById('carousel-area'),
-  navDotsEl:      document.getElementById('nav-dots'),
-  arrowPrev:      document.getElementById('arrow-prev'),
-  arrowNext:      document.getElementById('arrow-next'),
-  drawerOverlay:  document.getElementById('drawer-overlay'),
-  drawerList:     document.getElementById('drawer-list'),
-  drawerSearch:   document.getElementById('drawer-search'),
-  drawerToggle:   document.getElementById('drawer-toggle'),
-  drawerClose:    document.getElementById('drawer-close'),
-  drawerBackdrop: document.getElementById('drawer-backdrop'),
-}
-Object.entries(elements).forEach(([name, el]) => {
-  if (!el) console.error(`NULL ELEMENT: ${name}`)
-})
-
 // ── Admin nav ──
 onAuthStateChanged(auth, (user) => {
-  const adminNav = document.getElementById('admin-nav')
-  if (adminNav) adminNav.style.display = user ? 'block' : 'none'
+  const adminBtn = document.getElementById('admin-link')
+  if (adminBtn) {
+    adminBtn.style.display = user ? 'block' : 'none'
+    adminBtn.onclick = () => {
+      window.location.href =
+        `${import.meta.env.BASE_URL}pages/admin.html`
+    }
+  }
 })
 
 // ── Elements ──
-const carouselTrack  = document.getElementById('carousel-track')
-const carouselArea   = document.getElementById('carousel-area')
-const navDotsEl      = document.getElementById('nav-dots')
-const arrowPrev      = document.getElementById('arrow-prev')
-const arrowNext      = document.getElementById('arrow-next')
-const drawerOverlay  = document.getElementById('drawer-overlay')
-const drawerList     = document.getElementById('drawer-list')
-const drawerSearch   = document.getElementById('drawer-search')
-const drawerToggle   = document.getElementById('drawer-toggle')
-const drawerClose    = document.getElementById('drawer-close')
-const drawerBackdrop = document.getElementById('drawer-backdrop')
-const tabBtns        = document.querySelectorAll('.tab-btn')
-const drawerTabBtns  = document.querySelectorAll('.drawer-tab')
+const carouselTrack   = document.getElementById('carousel-track')
+const carouselArea    = document.getElementById('carousel-area')
+const navDotsEl       = document.getElementById('nav-dots')
+const arrowPrev       = document.getElementById('arrow-prev')
+const arrowNext       = document.getElementById('arrow-next')
+const drawerOverlay   = document.getElementById('drawer-overlay')
+const drawerList      = document.getElementById('drawer-list')
+const drawerSearch    = document.getElementById('drawer-search')
+const drawerToggle    = document.getElementById('drawer-toggle')
+const drawerClose     = document.getElementById('drawer-close')
+const drawerBackdrop  = document.getElementById('drawer-backdrop')
+const tabBtns         = document.querySelectorAll('.tab-btn')
+const drawerTabBtns   = document.querySelectorAll('.drawer-tab')
 
 // ── State ──
-let activeTab       = 'choruses'
-let hymnIndex       = null
-let chorusIndex     = null
-const songCache     = new Map()   // id → full song document
-let windowSongs     = []          // current 5-song render window
-let windowCenter    = 0           // index in full index array
-let fullIndex       = []          // current tab's full index array
-let isAnimating     = false
+let activeTab     = 'choruses'
+let hymnIndex     = null
+let chorusIndex   = null
+const songCache   = new Map()
+let windowSongs   = []
+let windowCenter  = 0
+let fullIndex     = []
+let isAnimating   = false
 
-const WINDOW_SIZE   = 5
-const WINDOW_HALF   = Math.floor(WINDOW_SIZE / 2)
+const WINDOW_SIZE = 5
+const WINDOW_HALF = Math.floor(WINDOW_SIZE / 2)
+
+// ── Breakpoint ──
+const isDesktop = () => window.innerWidth >= 768
 
 // ── Init ──
 async function init() {
   await loadTabIndex('choruses')
+  fullIndex = chorusIndex || []
 
-  // Direct URL — check for ?id= param
-  const params  = new URLSearchParams(window.location.search)
+  const params   = new URLSearchParams(window.location.search)
   const directId = params.get('id')
 
   if (directId) {
-    // Find which tab it belongs to
     const chorusMatch = chorusIndex?.findIndex(s => s.id === directId)
     if (chorusMatch !== undefined && chorusMatch >= 0) {
       await jumpToIndex(chorusMatch)
     } else {
-      // Try hymns
       await loadTabIndex('hymns')
-      switchTab('hymns')
+      await switchTab('hymns', false)
       const hymnMatch = hymnIndex?.findIndex(s => s.id === directId)
       if (hymnMatch !== undefined && hymnMatch >= 0) {
         await jumpToIndex(hymnMatch)
+      } else {
+        await jumpToIndex(randomIndex())
       }
     }
   } else {
-    await jumpToIndex(0)
+    await jumpToIndex(randomIndex())
+  }
+
+  renderDrawerList(fullIndex)
+
+  if (isDesktop()) {
+    openDrawer(false)
   }
 }
 
-// ── Load index for a tab ──
+function randomIndex() {
+  if (!fullIndex.length) return 0
+  return Math.floor(Math.random() * fullIndex.length)
+}
+
+// ── Load index ──
 async function loadTabIndex(tab) {
   if (tab === 'choruses' && chorusIndex) return chorusIndex
   if (tab === 'hymns'    && hymnIndex)   return hymnIndex
-
   const type  = tab === 'hymns' ? 'hymn' : 'chorus'
   const songs = await getSongIndex(type)
-
   if (tab === 'choruses') chorusIndex = songs
   else                    hymnIndex   = songs
-
   return songs
 }
 
 // ── Switch tab ──
-async function switchTab(tab) {
+async function switchTab(tab, jump = true) {
   if (tab === activeTab) return
   activeTab = tab
 
@@ -107,64 +106,64 @@ async function switchTab(tab) {
 
   await loadTabIndex(tab)
   fullIndex = tab === 'hymns' ? hymnIndex : chorusIndex
+
   renderDrawerList(fullIndex)
-  await jumpToIndex(0)
+
+  if (jump) await jumpToIndex(randomIndex())
 }
 
-// ── Fetch a window of songs centred on index ──
+// ── Fetch window ──
 async function fetchWindow(centerIdx) {
-  const index = fullIndex
-  const start = Math.max(0, centerIdx - WINDOW_HALF)
-  const end   = Math.min(index.length - 1, centerIdx + WINDOW_HALF)
+  const start  = Math.max(0, centerIdx - WINDOW_HALF)
+  const end    = Math.min(fullIndex.length - 1, centerIdx + WINDOW_HALF)
   const needed = []
 
   for (let i = start; i <= end; i++) {
-    if (!songCache.has(index[i].id)) {
-      needed.push(index[i].id)
-    }
+    if (!songCache.has(fullIndex[i].id)) needed.push(fullIndex[i].id)
   }
 
-  // Fetch missing songs in parallel
   if (needed.length > 0) {
     const fetched = await Promise.all(needed.map(id => getSong(id)))
-    fetched.forEach(song => { if (song) songCache.set(song.id, song) })
+    fetched.forEach(s => { if (s) songCache.set(s.id, s) })
   }
 
-  // Pre-fetch song just outside window silently
-  const prefetch = [start - 1, end + 1]
-  prefetch.forEach(i => {
-    if (i >= 0 && i < index.length && !songCache.has(index[i].id)) {
-      getSong(index[i].id).then(s => { if (s) songCache.set(s.id, s) })
+  // Silent pre-fetch beyond window edges
+  ;[start - 1, end + 1].forEach(i => {
+    if (i >= 0 && i < fullIndex.length &&
+        !songCache.has(fullIndex[i].id)) {
+      getSong(fullIndex[i].id)
+        .then(s => { if (s) songCache.set(s.id, s) })
     }
   })
 
   return Array.from({ length: end - start + 1 }, (_, i) => {
-    const entry = index[start + i]
+    const entry = fullIndex[start + i]
     return songCache.get(entry.id) || { ...entry, lyrics: [] }
   })
 }
 
-// ── Jump to index position ──
+// ── Jump to index ──
 async function jumpToIndex(idx) {
-  windowCenter  = Math.max(0, Math.min(idx, fullIndex.length - 1))
-  windowSongs   = await fetchWindow(windowCenter)
+  windowCenter = Math.max(0, Math.min(idx, fullIndex.length - 1))
+  windowSongs  = await fetchWindow(windowCenter)
   renderCarousel()
   renderNavDots()
+  updateDrawerHighlight()
   updateURL()
 }
 
 // ── Render carousel ──
 function renderCarousel() {
   carouselTrack.innerHTML = ''
-  const localCenter = windowCenter - Math.max(0, windowCenter - WINDOW_HALF)
+  const localCenter =
+    windowCenter - Math.max(0, windowCenter - WINDOW_HALF)
 
   windowSongs.forEach((song, i) => {
     const card = buildCard(song, i === localCenter)
     carouselTrack.appendChild(card)
   })
 
-  // Position track so center card is centred
-  positionTrack(localCenter)
+  requestAnimationFrame(() => positionTrack(localCenter))
   updateArrows()
 }
 
@@ -172,31 +171,35 @@ function positionTrack(localCenter) {
   const cards     = carouselTrack.querySelectorAll('.song-card')
   if (!cards.length) return
   const areaWidth = carouselArea.offsetWidth
-  const cardWidth = cards[localCenter]?.offsetWidth || 280
-  const gap       = 16
+  const cardWidth = cards[localCenter]?.offsetWidth || 300
+  const gap       = parseInt(
+    getComputedStyle(document.documentElement)
+      .getPropertyValue('--card-gap')) || 16
 
   let offset = 0
   for (let i = 0; i < localCenter; i++) {
-    offset += (cards[i]?.offsetWidth || 260) + gap
+    offset += (cards[i]?.offsetWidth || 280) + gap
   }
-  offset = offset - (areaWidth / 2) + (cardWidth / 2)
+  offset = offset - areaWidth / 2 + cardWidth / 2
   carouselTrack.style.transform = `translateX(${-offset}px)`
 }
 
-// ── Build a single card ──
+// ── Build card ──
 function buildCard(song, isActive) {
-  const card = document.createElement('div')
-  card.className = `song-card ${isActive ? 'active' : 'side'}`
-  card.dataset.id = song.id
+  const card       = document.createElement('div')
+  card.className   = `song-card ${isActive ? 'active' : 'side'}`
+  card.dataset.id  = song.id
 
-  const typeLabel = song.type === 'hymn' ? 'Hymn' : 'Chorus'
-  const tags = (song.tags || [])
+  const typeLabel  = song.type === 'hymn' ? 'Hymn' : 'Chorus'
+  const tags       = (song.tags || [])
     .map(t => `<span class="tag">${t}</span>`).join('')
 
   card.innerHTML = `
     <div class="card-head">
       <div class="card-meta-top">
-        <span class="card-type-pill pill-${song.type}">${typeLabel} ${song.number}</span>
+        <span class="card-type-pill pill-${song.type}">
+          ${typeLabel} ${song.number}
+        </span>
         ${song.key
           ? `<span class="card-key-badge">${song.key}</span>`
           : ''}
@@ -224,38 +227,39 @@ function buildCard(song, isActive) {
       <button class="share-btn" data-id="${song.id}">Share song</button>
     </div>`
 
-  // Share button
-  card.querySelector('.share-btn').addEventListener('click', (e) => {
-    e.stopPropagation()
-    const url = `${window.location.origin}${import.meta.env.BASE_URL}?id=${song.id}`
-    navigator.clipboard.writeText(url).then(() => {
-      const btn = card.querySelector('.share-btn')
-      btn.textContent = 'Link copied!'
-      setTimeout(() => btn.textContent = 'Share song', 2000)
+  card.querySelector('.share-btn')
+    .addEventListener('click', (e) => {
+      e.stopPropagation()
+      const url =
+        `${window.location.origin}${import.meta.env.BASE_URL}?id=${song.id}`
+      navigator.clipboard.writeText(url).then(() => {
+        const btn = card.querySelector('.share-btn')
+        btn.textContent = 'Link copied!'
+        setTimeout(() => btn.textContent = 'Share song', 2000)
+      })
     })
-  })
 
-  // Clicking a side card navigates to it
   if (!isActive) {
     card.addEventListener('click', () => {
-      const direction = Array.from(carouselTrack.children).indexOf(card) 
-        Array.from(carouselTrack.children).findIndex(c => c.classList.contains('active'))
-        ? -1 : 1
-      navigate(direction)
+      const cards  = Array.from(carouselTrack.children)
+      const thisIdx = cards.indexOf(card)
+      const actIdx  = cards.findIndex(c =>
+        c.classList.contains('active'))
+      navigate(thisIdx < actIdx ? -1 : 1)
     })
   }
 
   return card
 }
 
-// ── Lyrics renderer ──
+// ── Lyrics ──
 function renderLyrics(song) {
   if (!song.lyrics || song.lyrics.length === 0) {
     return `<p class="state-message">Loading...</p>`
   }
   return song.lyrics.map(stanza => {
-    const isRefrain = stanza.type === 'refrain' ||
-                      stanza.type === 'refrain-alt'
+    const isRefrain =
+      stanza.type === 'refrain' || stanza.type === 'refrain-alt'
     const lines = (stanza.lines || [])
       .map(l => `<span class="lyric-line">${l}</span>`).join('')
     return `
@@ -273,10 +277,8 @@ async function navigate(direction) {
   if (isAnimating) return
   const newCenter = windowCenter + direction
   if (newCenter < 0 || newCenter >= fullIndex.length) return
-
   isAnimating = true
   await jumpToIndex(newCenter)
-  updateDrawerHighlight()
   setTimeout(() => isAnimating = false, 350)
 }
 
@@ -292,16 +294,15 @@ function updateArrows() {
   arrowNext.disabled = windowCenter >= fullIndex.length - 1
 }
 
-// ── Keyboard navigation ──
+// ── Keyboard ──
 document.addEventListener('keydown', (e) => {
-  if (drawerOverlay.classList.contains('open')) return
   if (e.key === 'ArrowLeft')  navigate(-1)
   if (e.key === 'ArrowRight') navigate(1)
 })
 
-// ── Swipe gestures ──
-let touchStartX  = 0
-let touchStartY  = 0
+// ── Swipe ──
+let touchStartX = 0
+let touchStartY = 0
 
 carouselArea.addEventListener('touchstart', (e) => {
   touchStartX = e.touches[0].clientX
@@ -318,8 +319,8 @@ carouselArea.addEventListener('touchend', (e) => {
 
 // ── Nav dots ──
 function renderNavDots() {
-  const total    = fullIndex.length
-  const maxDots  = 7
+  const total   = fullIndex.length
+  const maxDots = 7
   navDotsEl.innerHTML = ''
 
   if (total <= maxDots) {
@@ -330,83 +331,100 @@ function renderNavDots() {
       navDotsEl.appendChild(dot)
     })
   } else {
-    // Show position as text for large collections
     const label = document.createElement('span')
-    label.className = 'nav-position'
-    label.textContent =
-      `${windowCenter + 1} of ${total}`
+    label.className   = 'nav-position'
+    label.textContent = `${windowCenter + 1} of ${total}`
     navDotsEl.appendChild(label)
   }
 }
 
 // ── Drawer ──
-function openDrawer() {
+function openDrawer(animate = true) {
+  if (!animate) drawerOverlay.style.transition = 'none'
   drawerOverlay.classList.add('open')
   drawerOverlay.setAttribute('aria-hidden', 'false')
-  drawerSearch.focus()
-  renderDrawerList(fullIndex)
-  updateDrawerHighlight()
+  if (!animate) {
+    requestAnimationFrame(() => {
+      drawerOverlay.style.transition = ''
+    })
+  }
+  if (!isDesktop()) drawerSearch.focus()
 }
 
 function closeDrawer() {
+  if (isDesktop()) return
   drawerOverlay.classList.remove('open')
   drawerOverlay.setAttribute('aria-hidden', 'true')
   drawerSearch.value = ''
+  renderDrawerList(fullIndex)
 }
 
-drawerToggle.addEventListener('click',  openDrawer)
-drawerClose.addEventListener('click',   closeDrawer)
+if (drawerToggle) {
+  drawerToggle.addEventListener('click', () => {
+    drawerOverlay.classList.contains('open')
+      ? closeDrawer()
+      : openDrawer()
+  })
+}
+
+if (drawerClose) {
+  drawerClose.addEventListener('click', closeDrawer)
+}
+
 drawerBackdrop.addEventListener('click', closeDrawer)
 
-// Drawer tab switching
+// ── Drawer tabs ──
 drawerTabBtns.forEach(btn => {
   btn.addEventListener('click', async () => {
-    closeDrawer()
+    if (btn.dataset.tab === activeTab) return
     await switchTab(btn.dataset.tab)
-    openDrawer()
+    if (!isDesktop()) closeDrawer()
   })
 })
 
-// Main tab switching
+// ── Main tabs ──
 tabBtns.forEach(btn => {
   btn.addEventListener('click', () => switchTab(btn.dataset.tab))
 })
 
-// ── Drawer list render ──
+// ── Drawer list ──
 function renderDrawerList(songs) {
   if (!songs || songs.length === 0) {
-    drawerList.innerHTML =
-      `<div class="state-message" style="color:#9A9690;">No songs found.</div>`
+    drawerList.innerHTML = `
+      <div class="state-message" style="color:#9A9690;">
+        No songs found.
+      </div>`
     return
   }
-  drawerList.innerHTML = songs.map((song, i) => `
-    <div class="drawer-row ${i === windowCenter ? 'active' : ''}"
-         data-index="${i}">
-      <span class="drawer-num">${song.number}</span>
-      <span class="drawer-song-title">${song.title}</span>
-    </div>`).join('')
+
+  drawerList.innerHTML = songs.map((song, i) => {
+    const globalIdx = fullIndex.findIndex(s => s.id === song.id)
+    return `
+      <div class="drawer-row ${globalIdx === windowCenter ? 'active' : ''}"
+           data-index="${globalIdx}">
+        <span class="drawer-num">${song.number}</span>
+        <span class="drawer-song-title">${song.title}</span>
+      </div>`
+  }).join('')
 
   drawerList.querySelectorAll('.drawer-row').forEach(row => {
     row.addEventListener('click', async () => {
       const idx = parseInt(row.dataset.index)
-      closeDrawer()
       await jumpToIndex(idx)
-      updateDrawerHighlight()
+      if (!isDesktop()) closeDrawer()
     })
   })
 
-  // Scroll active row into view
-  const activeRow = drawerList.querySelector('.drawer-row.active')
-  if (activeRow) activeRow.scrollIntoView({ block: 'center' })
+  requestAnimationFrame(() => {
+    const active = drawerList.querySelector('.drawer-row.active')
+    if (active) active.scrollIntoView({ block: 'center' })
+  })
 }
 
 // ── Drawer search ──
 drawerSearch.addEventListener('input', () => {
   const q = drawerSearch.value.toLowerCase().trim()
-  if (!q) {
-    renderDrawerList(fullIndex)
-    return
-  }
+  if (!q) { renderDrawerList(fullIndex); return }
   const filtered = fullIndex.filter(s =>
     s.title.toLowerCase().includes(q) ||
     s.number.toString() === q
@@ -414,7 +432,7 @@ drawerSearch.addEventListener('input', () => {
   renderDrawerList(filtered)
 })
 
-// ── Update drawer highlight ──
+// ── Drawer highlight ──
 function updateDrawerHighlight() {
   drawerList.querySelectorAll('.drawer-row').forEach(row => {
     row.classList.toggle(
@@ -422,32 +440,34 @@ function updateDrawerHighlight() {
       parseInt(row.dataset.index) === windowCenter
     )
   })
+  const active = drawerList.querySelector('.drawer-row.active')
+  if (active) active.scrollIntoView({ block: 'nearest' })
 }
 
-// ── Update URL for sharing ──
+// ── URL ──
 function updateURL() {
   const song = fullIndex[windowCenter]
   if (!song) return
-  const url = `${window.location.pathname}?id=${song.id}`
-  window.history.replaceState({}, '', url)
+  window.history.replaceState(
+    {}, '', `${window.location.pathname}?id=${song.id}`)
 }
 
-// ── Handle browser back/forward ──
 window.addEventListener('popstate', () => {
-  const params   = new URLSearchParams(window.location.search)
-  const id       = params.get('id')
+  const id  = new URLSearchParams(window.location.search).get('id')
   if (!id) return
   const idx = fullIndex.findIndex(s => s.id === id)
   if (idx >= 0) jumpToIndex(idx)
 })
 
-// ── Resize handler ──
+// ── Resize ──
 window.addEventListener('resize', () => {
+  if (isDesktop() && !drawerOverlay.classList.contains('open')) {
+    openDrawer(false)
+  }
   const localCenter =
     windowCenter - Math.max(0, windowCenter - WINDOW_HALF)
   positionTrack(localCenter)
 })
 
 // ── Start ──
-fullIndex = chorusIndex || []
 init()

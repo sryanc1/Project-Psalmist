@@ -371,3 +371,50 @@ body { font-family: var(--font-sans); height: 100%; overflow: hidden; }
 .drawer-list::-webkit-scrollbar { width: 3px; }
 .card-body::-webkit-scrollbar-thumb { background: var(--color-border); border-radius: 2px; }
 .drawer-list::-webkit-scrollbar-thumb { background: #3A3835; border-radius: 2px; }
+
+
+/* ── Desktop layout ── */
+@media (min-width: 768px) {
+  .drawer-overlay {
+    position: relative;
+    opacity: 1;
+    pointer-events: all;
+    width: min(280px, 85vw);
+    flex-shrink: 0;
+  }
+
+  .drawer-overlay.open {
+    display: flex;
+  }
+
+  .drawer {
+    transform: translateX(0);
+    position: relative;
+  }
+
+  .drawer-backdrop {
+    display: none;
+  }
+
+  .app-body {
+    flex-direction: row;
+    flex-wrap: nowrap;
+  }
+
+  .app-bar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 100;
+  }
+
+  .main-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    height: 100dvh;
+    padding-top: 48px;
+  }
+}

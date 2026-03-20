@@ -1,5 +1,4 @@
 import { requireAuth, signOutUser, onAuthChange } from './auth.js'
-import { getSongs, addSong, updateSong, deleteSong } from './songs.js'
 import { getSongs, addSong, updateSong, deleteSong, rebuildIndex } from './songs.js'
 
 // ── Auth guard ──

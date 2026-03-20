@@ -1,5 +1,6 @@
 import { requireAuth, signOutUser, onAuthChange } from './auth.js'
 import { getSongs, addSong, updateSong, deleteSong } from './songs.js'
+import { getSongs, addSong, updateSong, deleteSong, rebuildIndex } from './songs.js'
 
 // ── Auth guard ──
 requireAuth()
@@ -15,6 +16,33 @@ document.getElementById('signout-btn')
   .addEventListener('click', async () => {
     await signOutUser()
     window.location.href = `${import.meta.env.BASE_URL}pages/login.html`
+  })
+
+// ── Rebuild index ──
+document.getElementById('rebuild-index-btn')
+  .addEventListener('click', async () => {
+    if (!confirm(
+      'Rebuild both indexes from scratch? ' +
+      'This may take a moment with large collections.'))
+      return
+
+    const btn = document.getElementById('rebuild-index-btn')
+    btn.disabled = true
+    btn.textContent = 'Rebuilding...'
+
+    try {
+      await Promise.all([
+        rebuildIndex('hymn'),
+        rebuildIndex('chorus')
+      ])
+      alert('Index rebuilt successfully.')
+    } catch (err) {
+      console.error('Rebuild failed:', err)
+      alert('Rebuild failed. Check the console for details.')
+    } finally {
+      btn.disabled = false
+      btn.textContent = 'Rebuild Index'
+    }
   })
 
 // ── State ──

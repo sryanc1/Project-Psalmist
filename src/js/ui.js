@@ -205,14 +205,19 @@ function renderCarousel() {
     })
   }
 
-  requestAnimationFrame(() => positionTrack(localCenter))
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => positionTrack(localCenter))
+  })
   updateArrows()
 }
 
 function positionTrack(localCenter) {
-  const cards     = carouselTrack.querySelectorAll('.song-card')
+  const cards = carouselTrack.querySelectorAll('.song-card')
   if (!cards.length) return
+
   const areaWidth = carouselArea.offsetWidth
+  if (!areaWidth) return  // guard against layout not ready
+
   const card      = cards[localCenter]
   if (!card) return
   const cardWidth = card.offsetWidth

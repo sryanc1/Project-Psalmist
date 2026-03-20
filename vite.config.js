@@ -4,6 +4,7 @@ import { VitePWA }       from 'vite-plugin-pwa'
 
 export default defineConfig({
   base: '/Project-Psalmist/',
+  publicDir: '../public',
   root: 'src',
   build: {
     outDir: '../dist',

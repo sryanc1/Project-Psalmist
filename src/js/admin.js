@@ -238,11 +238,36 @@ modalSaveBtn.addEventListener('click', async () => {
     .split(',').map(t => t.trim()).filter(Boolean)
   const type   = document.querySelector('.type-btn.active').dataset.type
 
-  // Validation
+  // ── Validation ──
   if (!title || !number || stanzas.length === 0) {
-    formError.style.display = 'block'
     formError.textContent = 'Please add a number, title and at least one stanza.'
+    formError.style.display = 'block'
     return
+  }
+
+  // Duplicate number check — within same type only
+  const numberExists = allSongs.some(s =>
+    s.type === type &&
+    s.number === number &&
+    s.id !== editingId  // allow same number when editing the same song
+  )
+  if (numberExists) {
+    formError.textContent =
+      `${type === 'hymn' ? 'Hymn' : 'Chorus'} number ${number} already exists. Please use a different number.`
+    formError.style.display = 'block'
+    return
+  }
+
+  // Duplicate title check — warn but allow
+  const titleExists = allSongs.some(s =>
+    s.title.toLowerCase() === title.toLowerCase() &&
+    s.id !== editingId
+  )
+  if (titleExists) {
+    const proceed = confirm(
+      `A song named "${title}" already exists. Are you sure you want to save a duplicate?`
+    )
+    if (!proceed) return
   }
   formError.style.display = 'none'
 
@@ -263,20 +288,22 @@ modalSaveBtn.addEventListener('click', async () => {
 
   try {
     if (editingId) {
-      await updateSong(editingId, songData)
+      const oldSong = allSongs.find(s => s.id === editingId)
+      await updateSong(editingId, songData, oldSong.type)
       const index = allSongs.findIndex(s => s.id === editingId)
+      allSongs[index] = { id: editingId, ...songData }
       allSongs.sort((a, b) => {
-      if (a.type !== b.type) return a.type.localeCompare(b.type)
+        if (a.type !== b.type) return a.type.localeCompare(b.type)
         return a.number - b.number
       })
       closeModal()
       renderSongList(allSongs, editingId)
     } else {
-      const newId = await addSong(songData)
+      const newId  = await addSong(songData)
       const newSong = { id: newId, ...songData }
-      allSongs.unshift(newSong)
+      allSongs.push(newSong)
       allSongs.sort((a, b) => {
-      if (a.type !== b.type) return a.type.localeCompare(b.type)
+        if (a.type !== b.type) return a.type.localeCompare(b.type)
         return a.number - b.number
       })
       closeModal()
@@ -296,9 +323,8 @@ modalSaveBtn.addEventListener('click', async () => {
 async function handleDelete(id) {
   const song = allSongs.find(s => s.id === id)
   if (!confirm(`Delete "${song.title}"? This cannot be undone.`)) return
-
   try {
-    await deleteSong(id)
+    await deleteSong(id, song.type)
     allSongs = allSongs.filter(s => s.id !== id)
     renderSongList(allSongs)
   } catch (err) {

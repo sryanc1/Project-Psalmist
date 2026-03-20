@@ -33,17 +33,22 @@
 
     <main class="container mt-3">
 
-      <div class="search-bar">
+      <div class="tab-bar">
+        <button class="tab-btn active" data-tab="choruses">Choruses</button>
+        <button class="tab-btn" data-tab="hymns">Hymns</button>
+      </div>
+
+      <div class="search-bar mt-2">
         <input
           type="text"
           id="search-input"
-          placeholder="Search songs, authors, tags..."
+          placeholder="Search by number, title, author..."
           autocomplete="off"
         />
       </div>
 
-      <div id="song-list" class="song-list mt-2">
-        <div class="state-message">Loading songs...</div>
+      <div id="song-list" class="mt-2">
+        <div class="state-message">Loading...</div>
       </div>
 
     </main>

@@ -261,3 +261,37 @@ a:hover { opacity: 0.75; }
   overflow: hidden;
   background: var(--color-ivory);
 }
+
+/* ── Tabs ── */
+.tab-bar {
+  display: flex;
+  gap: 0;
+  border: 0.5px solid var(--color-border);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  width: fit-content;
+}
+
+.tab-btn {
+  font-family: var(--font-sans);
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 8px 24px;
+  cursor: pointer;
+  border: none;
+  background: var(--color-ivory);
+  color: var(--color-muted);
+  transition: all var(--transition);
+}
+
+.tab-btn.active {
+  background: var(--color-charcoal);
+  color: var(--color-ivory);
+}
+
+.tab-btn:not(.active):hover {
+  background: var(--color-parchment);
+  color: var(--color-charcoal);
+}

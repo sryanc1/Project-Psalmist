@@ -35,7 +35,8 @@ const typeBtns       = document.querySelectorAll('.type-btn')
 // ── Load songs ──
 async function loadSongs() {
   try {
-    allSongs = await getSongs()
+    const { hymns, choruses } = await getSongs()
+    allSongs = [...hymns, ...choruses]
     renderSongList(allSongs)
   } catch (err) {
     console.error('Failed to load songs:', err)
@@ -264,15 +265,20 @@ modalSaveBtn.addEventListener('click', async () => {
     if (editingId) {
       await updateSong(editingId, songData)
       const index = allSongs.findIndex(s => s.id === editingId)
-      allSongs[index] = { id: editingId, ...songData }
-      allSongs.sort((a, b) => a.number - b.number)
+      allSongs.sort((a, b) => {
+      if (a.type !== b.type) return a.type.localeCompare(b.type)
+        return a.number - b.number
+      })
       closeModal()
       renderSongList(allSongs, editingId)
     } else {
       const newId = await addSong(songData)
       const newSong = { id: newId, ...songData }
       allSongs.unshift(newSong)
-      allSongs.sort((a, b) => a.number - b.number)
+      allSongs.sort((a, b) => {
+      if (a.type !== b.type) return a.type.localeCompare(b.type)
+        return a.number - b.number
+      })
       closeModal()
       renderSongList(allSongs, newId)
     }

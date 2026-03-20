@@ -2,6 +2,24 @@ import { auth }              from './firebase.js'
 import { onAuthStateChanged } from 'firebase/auth'
 import { getSongIndex, getSong } from './songs.js'
 
+// ── Temporary debug — remove after fix ──
+const elements = {
+  carouselTrack:  document.getElementById('carousel-track'),
+  carouselArea:   document.getElementById('carousel-area'),
+  navDotsEl:      document.getElementById('nav-dots'),
+  arrowPrev:      document.getElementById('arrow-prev'),
+  arrowNext:      document.getElementById('arrow-next'),
+  drawerOverlay:  document.getElementById('drawer-overlay'),
+  drawerList:     document.getElementById('drawer-list'),
+  drawerSearch:   document.getElementById('drawer-search'),
+  drawerToggle:   document.getElementById('drawer-toggle'),
+  drawerClose:    document.getElementById('drawer-close'),
+  drawerBackdrop: document.getElementById('drawer-backdrop'),
+}
+Object.entries(elements).forEach(([name, el]) => {
+  if (!el) console.error(`NULL ELEMENT: ${name}`)
+})
+
 // ── Admin nav ──
 onAuthStateChanged(auth, (user) => {
   const adminNav = document.getElementById('admin-nav')

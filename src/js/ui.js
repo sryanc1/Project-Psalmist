@@ -154,14 +154,45 @@ async function jumpToIndex(idx) {
 
 // ── Render carousel ──
 function renderCarousel() {
-  carouselTrack.innerHTML = ''
   const localCenter =
     windowCenter - Math.max(0, windowCenter - WINDOW_HALF)
 
-  windowSongs.forEach((song, i) => {
-    const card = buildCard(song, i === localCenter)
-    carouselTrack.appendChild(card)
-  })
+  // If card count matches, swap content and classes in place
+  const existing = carouselTrack.querySelectorAll('.song-card')
+  if (existing.length === windowSongs.length) {
+    windowSongs.forEach((song, i) => {
+      const card      = existing[i]
+      const isActive  = i === localCenter
+      const wasActive = card.classList.contains('active')
+
+      // Only rebuild content if song changed
+      if (card.dataset.id !== song.id) {
+        const newCard = buildCard(song, isActive)
+        carouselTrack.replaceChild(newCard, card)
+      } else if (isActive !== wasActive) {
+        card.classList.toggle('active', isActive)
+        card.classList.toggle('side',   !isActive)
+        // Re-wire click on side cards
+        if (!isActive) {
+          card.onclick = () => {
+            const cards   = Array.from(carouselTrack.children)
+            const thisIdx = cards.indexOf(card)
+            const actIdx  = cards.findIndex(c =>
+              c.classList.contains('active'))
+            navigate(thisIdx < actIdx ? -1 : 1)
+          }
+        } else {
+          card.onclick = null
+        }
+      }
+    })
+  } else {
+    // First render — build from scratch
+    carouselTrack.innerHTML = ''
+    windowSongs.forEach((song, i) => {
+      carouselTrack.appendChild(buildCard(song, i === localCenter))
+    })
+  }
 
   requestAnimationFrame(() => positionTrack(localCenter))
   updateArrows()
@@ -171,10 +202,10 @@ function positionTrack(localCenter) {
   const cards     = carouselTrack.querySelectorAll('.song-card')
   if (!cards.length) return
   const areaWidth = carouselArea.offsetWidth
-  const cardWidth = cards[localCenter]?.offsetWidth || 300
-  const gap       = parseInt(
-    getComputedStyle(document.documentElement)
-      .getPropertyValue('--card-gap')) || 16
+  const card      = cards[localCenter]
+  if (!card) return
+  const cardWidth = card.offsetWidth
+  const gap       = 16
 
   let offset = 0
   for (let i = 0; i < localCenter; i++) {
@@ -211,14 +242,6 @@ function buildCard(song, isActive) {
       ${tags
         ? `<div class="card-tags">${tags}</div>`
         : ''}
-    </div>
-    <div class="piano-accent">
-      <span class="wk"></span><span class="bk"></span>
-      <span class="wk"></span><span class="bk"></span>
-      <span class="wk"></span><span class="wk"></span>
-      <span class="bk"></span><span class="wk"></span>
-      <span class="bk"></span><span class="wk"></span>
-      <span class="bk"></span><span class="wk"></span>
     </div>
     <div class="card-body">
       ${renderLyrics(song)}

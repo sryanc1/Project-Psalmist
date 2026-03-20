@@ -1,13 +1,13 @@
 import { auth }               from './firebase.js'
 import { onAuthStateChanged } from 'firebase/auth'
 import { getSongIndex, getSong } from './songs.js'
+import { signInWithGoogle, signOutUser } from './auth.js'
 
 // ── Admin nav ──
 onAuthStateChanged(auth, (user) => {
   const adminBtn = document.getElementById('admin-link')
   if (!adminBtn) return
 
-  // Always show the button — behaviour changes based on auth state
   adminBtn.style.display = 'block'
 
   if (user) {
@@ -18,9 +18,17 @@ onAuthStateChanged(auth, (user) => {
     }
   } else {
     adminBtn.textContent = 'Admin Sign In'
-    adminBtn.onclick = () => {
-      window.location.href =
-        `${import.meta.env.BASE_URL}pages/login.html`
+    adminBtn.onclick = async () => {
+      try {
+        adminBtn.textContent = 'Signing in...'
+        adminBtn.disabled = true
+        await signInWithGoogle()
+        // onAuthStateChanged will fire and update the button
+      } catch (err) {
+        console.error('Sign in failed:', err)
+        adminBtn.textContent = 'Admin Sign In'
+        adminBtn.disabled = false
+      }
     }
   }
 })

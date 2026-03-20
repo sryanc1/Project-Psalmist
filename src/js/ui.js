@@ -5,11 +5,22 @@ import { getSongIndex, getSong } from './songs.js'
 // ── Admin nav ──
 onAuthStateChanged(auth, (user) => {
   const adminBtn = document.getElementById('admin-link')
-  if (adminBtn) {
-    adminBtn.style.display = user ? 'block' : 'none'
+  if (!adminBtn) return
+
+  // Always show the button — behaviour changes based on auth state
+  adminBtn.style.display = 'block'
+
+  if (user) {
+    adminBtn.textContent = 'Admin Panel'
     adminBtn.onclick = () => {
       window.location.href =
         `${import.meta.env.BASE_URL}pages/admin.html`
+    }
+  } else {
+    adminBtn.textContent = 'Admin Sign In'
+    adminBtn.onclick = () => {
+      window.location.href =
+        `${import.meta.env.BASE_URL}pages/login.html`
     }
   }
 })

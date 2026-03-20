@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <!-- Background -->
+  <rect width="512" height="512" rx="96" fill="#1C1C1A"/>
+
+  <!-- White keys (7 keys) -->
+  <rect x="64"  y="140" width="48" height="240" rx="6" fill="#FDFAF5"/>
+  <rect x="120" y="140" width="48" height="240" rx="6" fill="#FDFAF5"/>
+  <rect x="176" y="140" width="48" height="240" rx="6" fill="#FDFAF5"/>
+  <rect x="232" y="140" width="48" height="240" rx="6" fill="#FDFAF5"/>
+  <rect x="288" y="140" width="48" height="240" rx="6" fill="#FDFAF5"/>
+  <rect x="344" y="140" width="48" height="240" rx="6" fill="#FDFAF5"/>
+  <rect x="400" y="140" width="48" height="240" rx="6" fill="#FDFAF5"/>
+
+  <!-- Black keys (5 keys) -->
+  <rect x="100" y="140" width="36" height="152" rx="5" fill="#1C1C1A"/>
+  <rect x="156" y="140" width="36" height="152" rx="5" fill="#1C1C1A"/>
+  <rect x="268" y="140" width="36" height="152" rx="5" fill="#1C1C1A"/>
+  <rect x="324" y="140" width="36" height="152" rx="5" fill="#1C1C1A"/>
+  <rect x="380" y="140" width="36" height="152" rx="5" fill="#1C1C1A"/>
+
+  <!-- Candlelight accent bar at bottom -->
+  <rect x="64" y="390" width="384" height="10" rx="3" fill="#C8860A"/>
+</svg>

@@ -7,12 +7,18 @@
     <link rel="stylesheet" href="/css/main.css" />
     <title>Project Psalmist</title>
   </head>
-  <body>
+  <body class="app-body">
 
-    <header class="app-header">
-      <span class="app-name">Project Psalmist</span>
+    <!-- ── App bar ── -->
+    <header class="app-bar">
+      <button id="drawer-toggle" class="app-bar-btn" aria-label="Open song index">
+        <span class="hamburger-line"></span>
+        <span class="hamburger-line"></span>
+        <span class="hamburger-line"></span>
+      </button>
+      <span class="app-bar-title">Project Psalmist</span>
       <nav id="admin-nav" style="display:none;">
-        <a href="/pages/admin.html" class="btn btn-outline">Admin</a>
+        <a href="/Project-Psalmist/pages/admin.html" class="app-bar-link">Admin</a>
       </nav>
     </header>
 
@@ -31,27 +37,53 @@
       <span class="bk"></span><span class="wk"></span>
     </div>
 
-    <main class="container mt-3">
+    <!-- ── Tab bar ── -->
+    <div class="tab-bar">
+      <button class="tab-btn active" data-tab="choruses">Choruses</button>
+      <button class="tab-btn" data-tab="hymns">Hymns</button>
+    </div>
 
-      <div class="tab-bar">
-        <button class="tab-btn active" data-tab="choruses">Choruses</button>
-        <button class="tab-btn" data-tab="hymns">Hymns</button>
-      </div>
-
-      <div class="search-bar mt-2">
-        <input
-          type="text"
-          id="search-input"
-          placeholder="Search by number, title, author..."
-          autocomplete="off"
-        />
-      </div>
-
-      <div id="song-list" class="mt-2">
-        <div class="state-message">Loading...</div>
-      </div>
-
+    <!-- ── Carousel ── -->
+    <main class="carousel-area" id="carousel-area">
+      <div class="carousel-track" id="carousel-track"></div>
+      <button class="carousel-arrow arrow-prev" id="arrow-prev" aria-label="Previous song">&#8249;</button>
+      <button class="carousel-arrow arrow-next" id="arrow-next" aria-label="Next song">&#8250;</button>
     </main>
+
+    <!-- ── Nav dots ── -->
+    <div class="nav-dots" id="nav-dots"></div>
+
+    <!-- ── Drawer overlay ── -->
+    <div class="drawer-overlay" id="drawer-overlay" aria-hidden="true">
+      <div class="drawer" id="drawer" role="dialog" aria-label="Song index">
+
+        <div class="drawer-head">
+          <span class="drawer-title">Song Index</span>
+          <input
+            type="text"
+            id="drawer-search"
+            class="drawer-search"
+            placeholder="Search by number or title..."
+            autocomplete="off"
+          />
+        </div>
+
+        <div class="drawer-tabs">
+          <button class="drawer-tab active" data-tab="choruses">Choruses</button>
+          <button class="drawer-tab" data-tab="hymns">Hymns</button>
+        </div>
+
+        <div class="drawer-list" id="drawer-list">
+          <div class="state-message" style="color:#9A9690;">Loading...</div>
+        </div>
+
+        <div class="drawer-footer">
+          <button id="drawer-close" class="drawer-close-btn">✕ Close</button>
+        </div>
+
+      </div>
+      <div class="drawer-backdrop" id="drawer-backdrop"></div>
+    </div>
 
     <script type="module" src="/js/ui.js"></script>
 

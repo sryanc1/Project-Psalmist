@@ -1,3 +1,4 @@
+import '../css/admin.css'
 import { requireAuth, signOutUser, onAuthChange } from './auth.js'
 import { getSongs, addSong, updateSong, deleteSong, rebuildIndex } from './songs.js'
 

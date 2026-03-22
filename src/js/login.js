@@ -1,3 +1,4 @@
+import '../css/admin.css'
 import { signInWithGoogle, onAuthChange } from './auth.js'
 
 const signinBtn = document.getElementById('google-signin-btn')

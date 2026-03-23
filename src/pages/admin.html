@@ -3,17 +3,16 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <link rel="stylesheet" href="/css/main.css" />
     <title>Admin — Project Psalmist</title>
   </head>
-  <body>
+  <body class="admin-body">
 
     <header class="app-bar">
-      <a href="/Project-Psalmist/" class="app-name">Project Psalmist</a>
-      <nav style="display:flex; gap:1rem; align-items:center;">
-        <span id="admin-email" class="text-muted" style="font-size:0.75rem;"></span>
-        <button id="signout-btn" class="btn btn-outline">Sign Out</button>
-      </nav>
+      <span class="app-bar-title">Project Psalmist</span>
+      <div class="app-bar-right">
+        <span id="admin-email" class="admin-email"></span>
+        <button id="signout-btn" class="btn btn-outline-light">Sign Out</button>
+      </div>
     </header>
 
     <div class="piano-accent">
@@ -31,24 +30,24 @@
       <span class="bk"></span><span class="wk"></span>
     </div>
 
-    <main class="container mt-3">
+    <main class="admin-container">
 
       <div class="list-header">
-        <h2>All Songs</h2>
-        <div style="display:flex; gap:8px; align-items:center;">
-          <button id="rebuild-index-btn" class="btn btn-outline">Rebuild Index</button>
+        <h2 class="list-title">All Songs</h2>
+        <div class="list-actions">
+          <button id="rebuild-index-btn" class="btn btn-ghost">Rebuild Index</button>
           <button id="add-song-btn" class="btn btn-primary">+ Add Song</button>
         </div>
       </div>
 
-      <div id="song-list" class="admin-song-list card mt-2">
+      <div id="song-list" class="admin-song-list card">
         <div class="state-message">Loading songs...</div>
       </div>
 
     </main>
 
     <!-- ── Modal ── -->
-    <div id="modal-overlay" class="modal-overlay" style="display:none;">
+    <div id="modal-overlay" class="modal-overlay">
       <div class="modal-container">
 
         <div class="modal-header">
@@ -73,29 +72,27 @@
 
         <div class="modal-body">
 
-          <!-- Type toggle -->
           <div class="type-toggle">
             <button class="type-btn active" data-type="chorus">Chorus</button>
             <button class="type-btn" data-type="hymn">Hymn</button>
           </div>
 
-          <!-- Meta fields -->
           <div class="form-row-4">
             <div class="form-group">
-                <label for="field-number">Number</label>
-                <input type="number" id="field-number" placeholder="1" min="1" />
+              <label for="field-number">Number</label>
+              <input type="number" id="field-number" placeholder="1" min="1" />
             </div>
             <div class="form-group">
-                <label for="field-title">Title</label>
-                <input type="text" id="field-title" placeholder="Song title" />
+              <label for="field-title">Title</label>
+              <input type="text" id="field-title" placeholder="Song title" />
             </div>
             <div class="form-group">
-                <label for="field-author">Author</label>
-                <input type="text" id="field-author" placeholder="Author" />
+              <label for="field-author">Author</label>
+              <input type="text" id="field-author" placeholder="Author" />
             </div>
             <div class="form-group">
-                <label for="field-key">Key</label>
-                <select id="field-key">
+              <label for="field-key">Key</label>
+              <select id="field-key">
                 <option value="">— none —</option>
                 <option>A</option><option>Bb</option><option>B</option>
                 <option>C</option><option>Db</option><option>D</option>
@@ -104,36 +101,31 @@
                 <option>Am</option><option>Bm</option><option>Cm</option>
                 <option>Dm</option><option>Em</option><option>Fm</option>
                 <option>Gm</option>
-                </select>
+              </select>
             </div>
-            </div>
+          </div>
 
-          <div class="form-group mt-1">
+          <div class="form-group">
             <label for="field-tags">Tags (comma separated)</label>
             <input type="text" id="field-tags" placeholder="grace, classic, Easter" />
           </div>
 
-          <!-- Stanza builder -->
-          <div class="stanza-section mt-2">
-            <div class="section-label">Stanzas</div>
+          <div class="stanza-section">
+            <div class="stanza-section-label">Stanzas</div>
             <div id="stanza-list"></div>
-            <div class="add-stanza-row mt-1">
+            <div class="add-stanza-row">
               <button class="add-stanza-btn" data-stype="verse">+ Verse</button>
-              <button class="add-stanza-btn refrain" id="btn-add-refrain"
-                data-stype="refrain">+ Refrain</button>
-              <button class="add-stanza-btn refrain" id="btn-add-refrain-alt"
-                data-stype="refrain-alt">+ Alt Refrain</button>
+              <button class="add-stanza-btn refrain" data-stype="refrain">+ Refrain</button>
+              <button class="add-stanza-btn refrain" data-stype="refrain-alt">+ Alt Refrain</button>
             </div>
           </div>
 
-          <div id="form-error" class="form-error" style="display:none;">
-            Please add a title and at least one stanza.
-          </div>
+          <div id="form-error" class="form-error"></div>
 
         </div>
 
         <div class="modal-footer">
-          <button id="modal-cancel" class="btn-text">Cancel</button>
+          <button id="modal-cancel" class="btn btn-text">Cancel</button>
           <button id="modal-save" class="btn btn-primary">Save Song</button>
         </div>
 

@@ -15,7 +15,7 @@ onAuthChange((user) => {
 document.getElementById('signout-btn')
   .addEventListener('click', async () => {
     await signOutUser()
-    window.location.href = `${import.meta.env.BASE_URL}pages/login.html`
+    window.location.href = import.meta.env.BASE_URL
   })
 
 // ── Rebuild index ──

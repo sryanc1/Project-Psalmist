@@ -79,6 +79,13 @@ body { font-family: var(--font-sans); height: 100%; overflow: hidden; }
   color: var(--color-candlelight);
   text-decoration: none;
 }
+a.app-bar-title {
+  text-decoration: none;
+  cursor: pointer;
+}
+a.app-bar-title:hover {
+  opacity: 0.8;
+}
 
 /* ── Piano accent ── */
 .piano-accent {

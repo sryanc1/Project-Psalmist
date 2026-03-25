@@ -105,6 +105,39 @@ body { font-family: var(--font-sans); height: 100%; overflow: hidden; }
   position: relative;
 }
 
+/* ── Tab bar ── */
+.tab-bar {
+  display: flex;
+  gap: 0;
+  padding: 0.75rem 1rem 0;
+  flex-shrink: 0;
+}
+.tab-btn {
+  font-family: var(--font-sans);
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 6px 18px;
+  cursor: pointer;
+  border: 0.5px solid var(--color-border);
+  background: var(--color-ivory);
+  color: var(--color-muted);
+  transition: all var(--transition);
+}
+.tab-btn:first-child {
+  border-radius: var(--radius-sm) 0 0 var(--radius-sm);
+}
+.tab-btn:last-child {
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+  border-left: none;
+}
+.tab-btn.active {
+  background: var(--color-charcoal);
+  color: var(--color-ivory);
+  border-color: var(--color-charcoal);
+}
+
 /* ── Carousel ── */
 .carousel-area {
   flex: 1;
@@ -117,8 +150,8 @@ body { font-family: var(--font-sans); height: 100%; overflow: hidden; }
 .carousel-track {
   display: flex;
   gap: var(--card-gap);
-  align-items: stretch;       /* was: center */
-  padding: 1rem 0rem var(--card-gap);
+  align-items: center;
+  padding: 1rem var(--card-gap);
   transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
   will-change: transform;
 }
@@ -136,10 +169,8 @@ body { font-family: var(--font-sans); height: 100%; overflow: hidden; }
   transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1),
               opacity 0.35s ease;
   will-change: transform, opacity;
-  /* Fixed height so all cards are the same — body scrolls internally */
-  height: calc(100dvh - 200px);
-  max-height: 640px;
-  min-height: 320px;
+  max-height: calc(100vh - 220px);
+  max-height: calc(100dvh - 220px);
 }
 .song-card.side {
   transform: scale(0.92);
@@ -592,6 +623,41 @@ body { font-family: var(--font-sans); height: 100%; overflow: hidden; }
     overflow: hidden;
   }
 
+  /* ── App bar — tabs move in, piano accent replaces bottom border ── */
+  .app-bar {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 0.6rem 1.25rem;
+    border-bottom: none;
+  }
+
+  /* Tab bar sits inside app bar on desktop */
+  .app-bar .tab-bar {
+    margin-left: auto;
+    padding: 0;
+    border: 0.5px solid #3A3835;
+    border-radius: var(--radius-sm);
+    overflow: hidden;
+  }
+
+  .app-bar .tab-btn {
+    padding: 5px 16px;
+    font-size: 0.65rem;
+    border: none;
+    border-radius: 0;
+  }
+
+  .app-bar .tab-btn.active {
+    background: var(--color-candlelight);
+    color: var(--color-ivory);
+  }
+
+  /* Hide the standalone tab bar row on desktop — it lives in app bar */
+  .main-content > .tab-bar {
+    display: none;
+  }
+
   /* Piano accent stays visible below app bar */
   .main-content .piano-accent {
     display: flex;
@@ -606,23 +672,4 @@ body { font-family: var(--font-sans); height: 100%; overflow: hidden; }
   .card-title    { font-size: 1.4rem; }
   .lyric-line    { font-size: 1.05rem; }
   .card-author   { font-size: 0.8rem; }
-}
-
-/* Ensure drawer starts closed on mobile */
-@media (max-width: 767px) {
-  .drawer-overlay {
-    opacity: 0 !important;
-    pointer-events: none !important;
-  }
-  .drawer-overlay.open {
-    opacity: 1 !important;
-    pointer-events: all !important;
-  }
-}
-
-@media (min-width: 768px) {
-  .song-card {
-    height: calc(100dvh - 160px);
-    max-height: 780px;
-  }
 }

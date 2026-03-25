@@ -546,6 +546,14 @@ a.app-bar-title:hover {
   background: var(--color-candlelight);
   color: var(--color-ivory);
 }
+.drawer-admin-btn.authenticated {
+  color: #3B6D11;
+  border-color: #3B6D11;
+}
+.drawer-admin-btn.authenticated:hover {
+  background: #3B6D11;
+  color: var(--color-ivory);
+}
 
 /* ── State message ── */
 .state-message {

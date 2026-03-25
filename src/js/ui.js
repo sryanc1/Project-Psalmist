@@ -12,13 +12,15 @@ onAuthStateChanged(auth, (user) => {
   adminBtn.disabled = false  // ← always re-enable on auth state change
 
   if (user) {
-    adminBtn.textContent = 'Admin Panel'
-    adminBtn.onclick = () => {
+      adminBtn.textContent = '✓ Admin Panel'
+      adminBtn.classList.add('authenticated')
+      adminBtn.onclick = () => {
       window.location.href =
         `${import.meta.env.BASE_URL}pages/admin.html`
     }
   } else {
     adminBtn.textContent = 'Admin Sign In'
+    adminBtn.classList.remove('authenticated')
     adminBtn.onclick = async () => {
       try {
         adminBtn.textContent = 'Signing in...'

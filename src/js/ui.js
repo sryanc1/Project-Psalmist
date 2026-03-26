@@ -167,15 +167,14 @@ async function fetchWindow(centerIdx) {
 async function jumpToIndex(idx) {
   windowCenter = Math.max(0, Math.min(idx, fullIndex.length - 1))
   windowSongs  = await fetchWindow(windowCenter)
-  const windowStart = Math.max(0, windowCenter - WINDOW_HALF)
-  renderCarousel(windowStart)
+  renderCarousel()
   renderNavDots()
   updateDrawerHighlight()
   updateURL()
 }
 
 // - Render carousel -
-function renderCarousel(windowStart = 0) {
+function renderCarousel() {
   const localCenter =
     windowCenter - Math.max(0, windowCenter - WINDOW_HALF)
 
@@ -217,12 +216,12 @@ function renderCarousel(windowStart = 0) {
   }
 
   requestAnimationFrame(() => {
-    requestAnimationFrame(() => positionTrack(localCenter, windowStart))
+    requestAnimationFrame(() => positionTrack(localCenter))
   })
   updateArrows()
 }
 
-function positionTrack(localCenter, windowStart = 0) {
+function positionTrack(localCenter) {
   const cards = carouselTrack.querySelectorAll('.song-card')
   if (!cards.length) return
 
@@ -234,13 +233,13 @@ function positionTrack(localCenter, windowStart = 0) {
   const cardWidth = card.offsetWidth
   const gap       = 16
 
-  // Calculate offset from all cards before the window using actual measured width
-  let offset = windowStart * (cardWidth + gap)
-
-  // Then add cards in the current window up to localCenter
+  // Sum up widths of all cards before localCenter (only cards in the DOM window)
+  let offset = 0
   for (let i = 0; i < localCenter; i++) {
     offset += (cards[i]?.offsetWidth || cardWidth) + gap
   }
+
+  // Center the active card in the viewport
   offset = offset - areaWidth / 2 + cardWidth / 2
   carouselTrack.style.transform = `translateX(${-offset}px)`
 }
@@ -519,8 +518,7 @@ window.addEventListener('resize', () => {
   }
   const localCenter =
     windowCenter - Math.max(0, windowCenter - WINDOW_HALF)
-  const windowStart = Math.max(0, windowCenter - WINDOW_HALF)
-  positionTrack(localCenter, windowStart)
+  positionTrack(localCenter)
 })
 
 // - Start -

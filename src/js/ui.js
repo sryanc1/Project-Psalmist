@@ -61,18 +61,25 @@ let isAnimating = false
 // - Three-tier cache -
 const memoryCache = new Map()
 
-async function getCachedSong(id) {
-  // Layer 1 - memory
-  if (memoryCache.has(id)) return memoryCache.get(id)
+async function getCachedSong(id, indexUpdatedAt = 0) {
+  // Layer 1 — memory (check version)
+  if (memoryCache.has(id)) {
+    const cached = memoryCache.get(id)
+    if (!indexUpdatedAt || cached._cachedAt >= indexUpdatedAt) {
+      return cached
+    }
+    // Memory copy is stale — evict it
+    memoryCache.delete(id)
+  }
 
-  // Layer 2 - IndexedDB
-  const cached = await idbGet(id)
+  // Layer 2 — IndexedDB (with staleness check)
+  const cached = await idbGet(id, indexUpdatedAt)
   if (cached) {
     memoryCache.set(id, cached)
     return cached
   }
 
-  // Layer 3 - Firestore
+  // Layer 3 — Firestore
   try {
     const song = await getSong(id)
     if (song) {
@@ -197,26 +204,38 @@ function fillCard(card, song) {
 // - Populate ±2 window -
 async function populateWindow(center) {
   const start = Math.max(0, center - 2)
-  const end = Math.min(fullIndex.length - 1, center + 2)
+  const end   = Math.min(fullIndex.length - 1, center + 2)
   const cards = carouselTrack.querySelectorAll('.song-card')
 
   const fetches = []
   for (let i = start; i <= end; i++) {
-    const card = cards[i]
-    if (!card || card.dataset.populated === 'true') continue
-    const id = fullIndex[i].id
+    const card       = cards[i]
+    if (!card) continue
+    const entry      = fullIndex[i]
+    const id         = entry.id
+    const updatedAt  = entry.updatedAt || 0
+
+    // Always re-populate if stale even if card was previously filled
+    const memHit = memoryCache.get(id)
+    const isStale = memHit && updatedAt && memHit._cachedAt < updatedAt
+
+    if (card.dataset.populated === 'true' && !isStale) continue
+
     fetches.push(
-      getCachedSong(id).then(song => {
-        if (song) fillCard(card, song)
+      getCachedSong(id, updatedAt).then(song => {
+        if (song) {
+          card.dataset.populated = 'false' // reset so fillCard runs
+          fillCard(card, song)
+        }
       })
     )
   }
   await Promise.all(fetches)
 
-  // Silent pre-fetch beyond window
+  // Silent pre-fetch
   ;[start - 1, end + 1].forEach(i => {
     if (i >= 0 && i < fullIndex.length) {
-      getCachedSong(fullIndex[i].id)
+      getCachedSong(fullIndex[i].id, fullIndex[i].updatedAt || 0)
     }
   })
 }

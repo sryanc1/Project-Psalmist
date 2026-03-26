@@ -29,7 +29,8 @@ function toIndexEntry(song) {
     id:     song.id,
     number: song.number,
     title:  song.title,
-    key:    song.key || ''
+    key:    song.key || '',
+    updatedAt: Date.now()
   }
 }
 

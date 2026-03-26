@@ -5,7 +5,7 @@ import {
   onAuthStateChanged
 } from 'firebase/auth'
 
-// ── Sign in with Google ──
+// - Sign in with Google -
 export async function signInWithGoogle() {
   try {
     await signInWithPopup(auth, googleProvider)
@@ -15,7 +15,7 @@ export async function signInWithGoogle() {
   }
 }
 
-// ── Sign out ──
+// - Sign out -
 export async function signOutUser() {
   try {
     await signOut(auth)
@@ -25,17 +25,17 @@ export async function signOutUser() {
   }
 }
 
-// ── Get current user ──
+// - Get current user -
 export function getCurrentUser() {
   return auth.currentUser
 }
 
-// ── Auth state observer ──
+// - Auth state observer -
 export function onAuthChange(callback) {
   return onAuthStateChanged(auth, callback)
 }
 
-// ── Admin guard ──
+// - Admin guard -
 // Call this at the top of any admin page
 // Redirects to login if not authenticated
 export function requireAuth(redirectPath = `${import.meta.env.BASE_URL}pages/login.html`) {

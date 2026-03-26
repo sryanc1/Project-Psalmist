@@ -10,7 +10,7 @@ import {
 const SONGS_COLLECTION = 'songs'
 const BATCH_SIZE       = 400
 
-// ── Parse text file into song objects ──
+// - Parse text file into song objects -
 export function parseChorusFile(text) {
   const songs  = []
   let current  = null
@@ -29,7 +29,7 @@ export function parseChorusFile(text) {
 
     const firstLine = lines[0]
 
-    // ── New song — bare integer ──
+    // - New song — bare integer -
     if (/^\d+$/.test(firstLine)) {
       if (current) songs.push(finaliseSong(current))
       current = {
@@ -52,7 +52,7 @@ export function parseChorusFile(text) {
 
     if (!current) continue
 
-    // ── Alt Chorus ──
+    // - Alt Chorus -
     if (/^Alt Chorus:/i.test(firstLine)) {
       const remainder = firstLine.replace(/^Alt Chorus:\s*/i, '').trim()
       const lyricLines = [
@@ -67,7 +67,7 @@ export function parseChorusFile(text) {
       continue
     }
 
-    // ── Chorus ──
+    // - Chorus -
     if (/^Chorus:/i.test(firstLine)) {
       const remainder = firstLine.replace(/^Chorus:\s*/i, '').trim()
       const lyricLines = [
@@ -82,7 +82,7 @@ export function parseChorusFile(text) {
       continue
     }
 
-    // ── Regular verse ──
+    // - Regular verse -
     const verseCount = current.lyrics
       .filter(s => s.type === 'verse').length
     current.lyrics.push({
@@ -98,7 +98,7 @@ export function parseChorusFile(text) {
   return songs
 }
 
-// ── Finalise song — fill in defaults ──
+// - Finalise song — fill in defaults -
 function finaliseSong(song) {
   // Derive title from first lyric line of first stanza
   const firstStanza = song.lyrics.find(s => s.type === 'verse')
@@ -116,7 +116,7 @@ function finaliseSong(song) {
   }
 }
 
-// ── Basic title case for first line ──
+// - Basic title case for first line -
 function toTitleCase(str) {
   const minorWords =
     ['a','an','the','and','but','or','for','nor',
@@ -134,7 +134,7 @@ function toTitleCase(str) {
     .join(' ')
 }
 
-// ── Batch write songs to Firestore ──
+// - Batch write songs to Firestore -
 export async function batchImport(songs, onProgress) {
   const total   = songs.length
   let   written = 0

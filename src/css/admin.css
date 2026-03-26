@@ -1,6 +1,6 @@
 @import './main.css';
 
-/* ── Admin layout ── */
+/* - Admin layout - */
 .admin-body {
   min-height: 100vh;
   background: var(--color-parchment);
@@ -9,7 +9,7 @@
   overflow-y: auto;
 }
 
-/* ── App bar (admin version) ── */
+/* - App bar (admin version) - */
 .app-bar {
   background: var(--color-charcoal);
   padding: 0.75rem 1.5rem;
@@ -36,7 +36,7 @@
   font-family: var(--font-sans);
 }
 
-/* ── Buttons ── */
+/* - Buttons - */
 .btn {
   font-family: var(--font-sans);
   font-size: 0.75rem;
@@ -85,14 +85,14 @@
 }
 .btn-text:hover { color: var(--color-charcoal); }
 
-/* ── Admin container ── */
+/* - Admin container - */
 .admin-container {
   max-width: 860px;
   margin: 0 auto;
   padding: 1.5rem;
 }
 
-/* ── List header ── */
+/* - List header - */
 .list-header {
   display: flex;
   align-items: center;
@@ -112,7 +112,7 @@
   align-items: center;
 }
 
-/* ── Card ── */
+/* - Card - */
 .card {
   background: var(--color-ivory);
   border: 0.5px solid var(--color-border);
@@ -120,7 +120,7 @@
   overflow: hidden;
 }
 
-/* ── Admin song list ── */
+/* - Admin song list - */
 .admin-song-list { overflow: hidden; }
 
 .admin-song-row {
@@ -194,7 +194,7 @@
 .icon-btn:hover { border-color: var(--color-candlelight); color: var(--color-candlelight); }
 .icon-btn.danger:hover { border-color: #FCA5A5; color: #B91C1C; }
 
-/* ── Modal ── */
+/* - Modal - */
 .modal-overlay {
   position: fixed;
   inset: 0;
@@ -266,7 +266,7 @@
   flex-shrink: 0;
 }
 
-/* ── Type toggle ── */
+/* - Type toggle - */
 .type-toggle {
   display: flex;
   border: 0.5px solid var(--color-border);
@@ -292,7 +292,7 @@
   color: var(--color-ivory);
 }
 
-/* ── Form ── */
+/* - Form - */
 .form-row-4 {
   display: grid;
   grid-template-columns: 0.5fr 2fr 1fr 1fr;
@@ -327,7 +327,7 @@
 .form-group input:focus,
 .form-group select:focus { border-color: var(--color-candlelight); }
 
-/* ── Stanza builder ── */
+/* - Stanza builder - */
 .stanza-section {
   display: flex;
   flex-direction: column;
@@ -415,7 +415,7 @@
 }
 .stanza-block textarea:focus { background: #FFFDF9; }
 
-/* ── Add stanza buttons ── */
+/* - Add stanza buttons - */
 .add-stanza-row {
   display: flex;
   gap: 8px;
@@ -445,7 +445,7 @@
 }
 .add-stanza-btn.refrain:hover { border-color: var(--color-candlelight); }
 
-/* ── Form error ── */
+/* - Form error - */
 .form-error {
   display: none;
   padding: 0.75rem;
@@ -458,7 +458,7 @@
 }
 .form-error.visible { display: block; }
 
-/* ── Login card ── */
+/* - Login card - */
 .login-card {
   max-width: 400px;
   margin: 3rem auto 0;
@@ -500,7 +500,7 @@
   font-size: 0.8rem;
 }
 
-/* ── State message ── */
+/* - State message - */
 .state-message {
   text-align: center;
   padding: 2rem 1rem;
@@ -510,7 +510,7 @@
   font-size: 1rem;
 }
 
-/* ── Responsive ── */
+/* - Responsive - */
 @media (max-width: 600px) {
   .form-row-4 {
     grid-template-columns: 1fr 1fr;
@@ -526,7 +526,7 @@
   }
 }
 
-/* ── Import section ── */
+/* - Import section - */
 .import-card { overflow: visible; }
 
 .import-body {
@@ -588,7 +588,7 @@
   font-style: italic;
 }
 
-/* ── Preview ── */
+/* - Preview - */
 .import-preview {
   display: none;
   background: var(--color-parchment);
@@ -643,7 +643,7 @@
   flex-shrink: 0;
 }
 
-/* ── Progress ── */
+/* - Progress - */
 .import-progress {
   display: none;
   align-items: center;
@@ -673,7 +673,7 @@
   text-align: right;
 }
 
-/* ── Result ── */
+/* - Result - */
 .import-result {
   display: none;
   padding: 0.75rem;

@@ -4,14 +4,14 @@ import { signInWithGoogle, onAuthChange } from './auth.js'
 const signinBtn = document.getElementById('google-signin-btn')
 const errorEl = document.getElementById('login-error')
 
-// ── If already signed in redirect to admin ──
+// - If already signed in redirect to admin -
 onAuthChange((user) => {
   if (user) {
     window.location.href = `${import.meta.env.BASE_URL}pages/admin.html`
   }
 })
 
-// ── Sign in button ──
+// - Sign in button -
 signinBtn.addEventListener('click', async () => {
   errorEl.style.display = 'none'
   signinBtn.disabled = true

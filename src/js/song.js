@@ -1,12 +1,12 @@
 import { getSong } from './songs.js'
 
-// ── Get song id from URL ──
+// - Get song id from URL -
 const params = new URLSearchParams(window.location.search)
 const songId = params.get('id')
 
 const contentEl = document.getElementById('song-content')
 
-// ── Init ──
+// - Init -
 async function init() {
   if (!songId) {
     showError('No song specified.')
@@ -27,7 +27,7 @@ async function init() {
   }
 }
 
-// ── Render ──
+// - Render -
 function renderSong(song) {
   contentEl.innerHTML = `
     <div class="song-header card">
@@ -76,7 +76,7 @@ function renderSong(song) {
   `
 }
 
-// ── Lyrics renderer ──
+// - Lyrics renderer -
 function renderLyrics(song) {
   if (!song.lyrics || song.lyrics.length === 0) {
     return `<p class="state-message">No lyrics available.</p>`
@@ -103,7 +103,7 @@ function renderStanza(stanza) {
     </div>`
 }
 
-// ── Error ──
+// - Error -
 function showError(msg) {
   contentEl.innerHTML =
     `<div class="state-message">${msg}</div>`

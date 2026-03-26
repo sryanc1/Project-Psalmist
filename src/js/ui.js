@@ -3,7 +3,7 @@ import { onAuthStateChanged } from 'firebase/auth'
 import { getSongIndex, getSong } from './songs.js'
 import { signInWithGoogle, signOutUser } from './auth.js'
 
-// ── Admin nav ──
+// - Admin nav -
 onAuthStateChanged(auth, (user) => {
   const adminBtn = document.getElementById('admin-link')
   if (!adminBtn) return
@@ -35,7 +35,7 @@ onAuthStateChanged(auth, (user) => {
   }
 })
 
-// ── Elements ──
+// - Elements -
 const carouselTrack   = document.getElementById('carousel-track')
 const carouselArea    = document.getElementById('carousel-area')
 const navDotsEl       = document.getElementById('nav-dots')
@@ -50,7 +50,7 @@ const drawerBackdrop  = document.getElementById('drawer-backdrop')
 const tabBtns         = document.querySelectorAll('.tab-btn')
 const drawerTabBtns   = document.querySelectorAll('.drawer-tab')
 
-// ── State ──
+// - State -
 let activeTab     = 'choruses'
 let hymnIndex     = null
 let chorusIndex   = null
@@ -63,10 +63,10 @@ let isAnimating   = false
 const WINDOW_SIZE = 5
 const WINDOW_HALF = Math.floor(WINDOW_SIZE / 2)
 
-// ── Breakpoint ──
+// - Breakpoint -
 const isDesktop = () => window.innerWidth >= 768
 
-// ── Init ──
+// - Init -
 async function init() {
   await loadTabIndex('choruses')
   fullIndex = chorusIndex || []
@@ -104,7 +104,7 @@ function randomIndex() {
   return Math.floor(Math.random() * fullIndex.length)
 }
 
-// ── Load index ──
+// - Load index -
 async function loadTabIndex(tab) {
   if (tab === 'choruses' && chorusIndex) return chorusIndex
   if (tab === 'hymns'    && hymnIndex)   return hymnIndex
@@ -115,7 +115,7 @@ async function loadTabIndex(tab) {
   return songs
 }
 
-// ── Switch tab ──
+// - Switch tab -
 async function switchTab(tab, jump = true) {
   if (tab === activeTab) return
   activeTab = tab
@@ -133,7 +133,7 @@ async function switchTab(tab, jump = true) {
   if (jump) await jumpToIndex(randomIndex())
 }
 
-// ── Fetch window ──
+// - Fetch window -
 async function fetchWindow(centerIdx) {
   const start  = Math.max(0, centerIdx - WINDOW_HALF)
   const end    = Math.min(fullIndex.length - 1, centerIdx + WINDOW_HALF)
@@ -163,18 +163,19 @@ async function fetchWindow(centerIdx) {
   })
 }
 
-// ── Jump to index ──
+// - Jump to index -
 async function jumpToIndex(idx) {
   windowCenter = Math.max(0, Math.min(idx, fullIndex.length - 1))
   windowSongs  = await fetchWindow(windowCenter)
-  renderCarousel()
+  const windowStart = Math.max(0, windowCenter - WINDOW_HALF)
+  renderCarousel(windowStart)
   renderNavDots()
   updateDrawerHighlight()
   updateURL()
 }
 
-// ── Render carousel ──
-function renderCarousel() {
+// - Render carousel -
+function renderCarousel(windowStart = 0) {
   const localCenter =
     windowCenter - Math.max(0, windowCenter - WINDOW_HALF)
 
@@ -216,12 +217,12 @@ function renderCarousel() {
   }
 
   requestAnimationFrame(() => {
-    requestAnimationFrame(() => positionTrack(localCenter))
+    requestAnimationFrame(() => positionTrack(localCenter, windowStart))
   })
   updateArrows()
 }
 
-function positionTrack(localCenter) {
+function positionTrack(localCenter, windowStart = 0) {
   const cards = carouselTrack.querySelectorAll('.song-card')
   if (!cards.length) return
 
@@ -233,7 +234,10 @@ function positionTrack(localCenter) {
   const cardWidth = card.offsetWidth
   const gap       = 16
 
-  let offset = 0
+  // Calculate offset from all cards before the window
+  let offset = windowStart * (280 + gap)  // estimate avg card width
+
+  // Then add cards in the current window up to localCenter
   for (let i = 0; i < localCenter; i++) {
     offset += (cards[i]?.offsetWidth || 280) + gap
   }
@@ -241,7 +245,7 @@ function positionTrack(localCenter) {
   carouselTrack.style.transform = `translateX(${-offset}px)`
 }
 
-// ── Build card ──
+// - Build card -
 function buildCard(song, isActive) {
   const card       = document.createElement('div')
   card.className   = `song-card ${isActive ? 'active' : 'side'}`
@@ -301,7 +305,7 @@ function buildCard(song, isActive) {
   return card
 }
 
-// ── Lyrics ──
+// - Lyrics -
 function renderLyrics(song) {
   if (!song.lyrics || song.lyrics.length === 0) {
     return `<p class="state-message">Loading...</p>`
@@ -321,7 +325,7 @@ function renderLyrics(song) {
   }).join('')
 }
 
-// ── Navigate ──
+// - Navigate -
 async function navigate(direction) {
   if (isAnimating) return
   const newCenter = windowCenter + direction
@@ -331,7 +335,7 @@ async function navigate(direction) {
   setTimeout(() => isAnimating = false, 350)
 }
 
-// ── Arrows ──
+// - Arrows -
 arrowPrev.addEventListener('click', () => navigate(-1))
 arrowNext.addEventListener('click', () => navigate(1))
 
@@ -343,13 +347,13 @@ function updateArrows() {
   arrowNext.disabled = windowCenter >= fullIndex.length - 1
 }
 
-// ── Keyboard ──
+// - Keyboard -
 document.addEventListener('keydown', (e) => {
   if (e.key === 'ArrowLeft')  navigate(-1)
   if (e.key === 'ArrowRight') navigate(1)
 })
 
-// ── Swipe ──
+// - Swipe -
 let touchStartX = 0
 let touchStartY = 0
 
@@ -366,7 +370,7 @@ carouselArea.addEventListener('touchend', (e) => {
   }
 }, { passive: true })
 
-// ── Nav dots ──
+// - Nav dots -
 function renderNavDots() {
   const total   = fullIndex.length
   const maxDots = 7
@@ -387,7 +391,7 @@ function renderNavDots() {
   }
 }
 
-// ── Drawer ──
+// - Drawer -
 function openDrawer(animate = true) {
   if (!animate) drawerOverlay.style.transition = 'none'
   drawerOverlay.classList.add('open')
@@ -422,7 +426,7 @@ if (drawerClose) {
 
 drawerBackdrop.addEventListener('click', closeDrawer)
 
-// ── Drawer tabs ──
+// - Drawer tabs -
 drawerTabBtns.forEach(btn => {
   btn.addEventListener('click', async () => {
     if (btn.dataset.tab === activeTab) return
@@ -431,12 +435,12 @@ drawerTabBtns.forEach(btn => {
   })
 })
 
-// ── Main tabs ──
+// - Main tabs -
 tabBtns.forEach(btn => {
   btn.addEventListener('click', () => switchTab(btn.dataset.tab))
 })
 
-// ── Drawer list ──
+// - Drawer list -
 function renderDrawerList(songs) {
   if (!songs || songs.length === 0) {
     drawerList.innerHTML = `
@@ -470,7 +474,7 @@ function renderDrawerList(songs) {
   })
 }
 
-// ── Drawer search ──
+// - Drawer search -
 drawerSearch.addEventListener('input', () => {
   const q = drawerSearch.value.toLowerCase().trim()
   if (!q) { renderDrawerList(fullIndex); return }
@@ -481,7 +485,7 @@ drawerSearch.addEventListener('input', () => {
   renderDrawerList(filtered)
 })
 
-// ── Drawer highlight ──
+// - Drawer highlight -
 function updateDrawerHighlight() {
   drawerList.querySelectorAll('.drawer-row').forEach(row => {
     row.classList.toggle(
@@ -493,7 +497,7 @@ function updateDrawerHighlight() {
   if (active) active.scrollIntoView({ block: 'nearest' })
 }
 
-// ── URL ──
+// - URL -
 function updateURL() {
   const song = fullIndex[windowCenter]
   if (!song) return
@@ -508,15 +512,16 @@ window.addEventListener('popstate', () => {
   if (idx >= 0) jumpToIndex(idx)
 })
 
-// ── Resize ──
+// - Resize -
 window.addEventListener('resize', () => {
   if (isDesktop() && !drawerOverlay.classList.contains('open')) {
     openDrawer(false)
   }
   const localCenter =
     windowCenter - Math.max(0, windowCenter - WINDOW_HALF)
-  positionTrack(localCenter)
+  const windowStart = Math.max(0, windowCenter - WINDOW_HALF)
+  positionTrack(localCenter, windowStart)
 })
 
-// ── Start ──
+// - Start -
 init()

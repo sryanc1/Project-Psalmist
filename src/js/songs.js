@@ -19,7 +19,7 @@ const META_COLLECTION  = 'meta'
 const HYMN_INDEX_DOC   = 'hymnIndex'
 const CHORUS_INDEX_DOC = 'chorusIndex'
 
-// ── Index helpers ──
+// - Index helpers -
 function indexDocId(type) {
   return type === 'hymn' ? HYMN_INDEX_DOC : CHORUS_INDEX_DOC
 }
@@ -33,7 +33,7 @@ function toIndexEntry(song) {
   }
 }
 
-// ── Read index (public list page) ──
+// - Read index (public list page) -
 export async function getSongIndex(type) {
   const ref      = doc(db, META_COLLECTION, indexDocId(type))
   const snapshot = await getDoc(ref)
@@ -41,7 +41,7 @@ export async function getSongIndex(type) {
   return snapshot.data().songs || []
 }
 
-// ── Rebuild full index from songs collection (used after bulk ops) ──
+// - Rebuild full index from songs collection (used after bulk ops) -
 export async function rebuildIndex(type) {
   const q        = query(
     collection(db, SONGS_COLLECTION),
@@ -59,7 +59,7 @@ export async function rebuildIndex(type) {
   return entries
 }
 
-// ── Patch index — add or update one entry ──
+// - Patch index — add or update one entry -
 async function patchIndexAdd(type, song) {
   const current = await getSongIndex(type)
   const filtered = current.filter(s => s.id !== song.id)
@@ -71,7 +71,7 @@ async function patchIndexAdd(type, song) {
   })
 }
 
-// ── Patch index — remove one entry ──
+// - Patch index — remove one entry -
 async function patchIndexRemove(type, id) {
   const current = await getSongIndex(type)
   const updated  = current.filter(s => s.id !== id)
@@ -81,7 +81,7 @@ async function patchIndexRemove(type, id) {
   })
 }
 
-// ── Get all songs flat (admin only) ──
+// - Get all songs flat (admin only) -
 export async function getSongs() {
   const [hymns, choruses] = await Promise.all([
     getSongsByType('hymn'),
@@ -90,7 +90,7 @@ export async function getSongs() {
   return { hymns, choruses }
 }
 
-// ── Get songs by type (admin only) ──
+// - Get songs by type (admin only) -
 export async function getSongsByType(type) {
   const q = query(
     collection(db, SONGS_COLLECTION),
@@ -101,7 +101,7 @@ export async function getSongsByType(type) {
   return snapshot.docs.map(d => ({ id: d.id, ...d.data() }))
 }
 
-// ── Get single song (detail view) ──
+// - Get single song (detail view) -
 export async function getSong(id) {
   const ref      = doc(db, SONGS_COLLECTION, id)
   const snapshot = await getDoc(ref)
@@ -109,7 +109,7 @@ export async function getSong(id) {
   return { id: snapshot.id, ...snapshot.data() }
 }
 
-// ── Add new song ──
+// - Add new song -
 export async function addSong(songData) {
   const ref  = await addDoc(collection(db, SONGS_COLLECTION), {
     ...songData,
@@ -120,7 +120,7 @@ export async function addSong(songData) {
   return ref.id
 }
 
-// ── Update existing song ──
+// - Update existing song -
 export async function updateSong(id, songData, oldType) {
   const ref = doc(db, SONGS_COLLECTION, id)
   await updateDoc(ref, {
@@ -134,7 +134,7 @@ export async function updateSong(id, songData, oldType) {
   await patchIndexAdd(songData.type, { id, ...songData })
 }
 
-// ── Delete song ──
+// - Delete song -
 export async function deleteSong(id, type) {
   const ref = doc(db, SONGS_COLLECTION, id)
   await deleteDoc(ref)

@@ -1,6 +1,6 @@
 @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;1,400&family=DM+Sans:wght@400;500;600&display=swap');
 
-/* ── Design Tokens ── */
+/* - Design Tokens - */
 :root {
   --color-charcoal:    #1C1C1A;
   --color-ivory:       #FDFAF5;
@@ -19,12 +19,12 @@
   --card-gap:    16px;
 }
 
-/* ── Reset ── */
+/* - Reset - */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 html { font-size: 16px; height: 100%; }
 body { font-family: var(--font-sans); height: 100%; overflow: hidden; }
 
-/* ── App layout ── */
+/* - App layout - */
 .app-body {
   display: flex;
   flex-direction: column;
@@ -35,7 +35,7 @@ body { font-family: var(--font-sans); height: 100%; overflow: hidden; }
   overflow: hidden;
 }
 
-/* ── App bar ── */
+/* - App bar - */
 .app-bar {
   background: var(--color-charcoal);
   padding: 0.75rem 1rem;
@@ -87,7 +87,7 @@ a.app-bar-title:hover {
   opacity: 0.8;
 }
 
-/* ── Piano accent ── */
+/* - Piano accent - */
 .piano-accent {
   height: 6px;
   background: var(--color-charcoal);
@@ -112,7 +112,7 @@ a.app-bar-title:hover {
   position: relative;
 }
 
-/* ── Tab bar ── */
+/* - Tab bar - */
 .tab-bar {
   display: flex;
   gap: 0;
@@ -145,7 +145,7 @@ a.app-bar-title:hover {
   border-color: var(--color-charcoal);
 }
 
-/* ── Carousel ── */
+/* - Carousel - */
 .carousel-area {
   flex: 1;
   position: relative;
@@ -164,7 +164,7 @@ a.app-bar-title:hover {
   will-change: transform;
 }
 
-/* ── Song card ── */
+/* - Song card - */
 .song-card {
   width: var(--card-width);
   flex-shrink: 0;
@@ -190,7 +190,7 @@ a.app-bar-title:hover {
   opacity: 1;
 }
 
-/* ── Card header ── */
+/* - Card header - */
 .card-head {
   background: var(--color-charcoal);
   padding: 1rem 1.1rem 0.85rem;
@@ -256,7 +256,7 @@ a.app-bar-title:hover {
   border: 0.5px solid #3A3835;
 }
 
-/* ── Card body ── */
+/* - Card body - */
 .card-body {
   flex: 1;
   overflow-y: auto;
@@ -272,7 +272,7 @@ a.app-bar-title:hover {
   border-radius: 2px;
 }
 
-/* ── Card share footer ── */
+/* - Card share footer - */
 .card-share {
   flex-shrink: 0;
   padding: 0.6rem 1.1rem;
@@ -292,7 +292,7 @@ a.app-bar-title:hover {
 }
 .share-btn:hover { color: var(--color-candlelight); }
 
-/* ── Lyrics ── */
+/* - Lyrics - */
 .stanza {
   display: flex;
   flex-direction: column;
@@ -323,7 +323,7 @@ a.app-bar-title:hover {
   display: block;
 }
 
-/* ── Carousel arrows ── */
+/* - Carousel arrows - */
 .carousel-arrow {
   position: absolute;
   top: 50%;
@@ -350,7 +350,7 @@ a.app-bar-title:hover {
 .arrow-prev { left: 8px; }
 .arrow-next { right: 8px; }
 
-/* ── Nav dots ── */
+/* - Nav dots - */
 .nav-dots {
   display: flex;
   justify-content: center;
@@ -379,7 +379,7 @@ a.app-bar-title:hover {
   letter-spacing: 0.05em;
 }
 
-/* ── Drawer ── */
+/* - Drawer - */
 .drawer-overlay {
   position: fixed;
   inset: 0;
@@ -556,7 +556,7 @@ a.app-bar-title:hover {
   color: var(--color-ivory);
 }
 
-/* ── State message ── */
+/* - State message - */
 .state-message {
   text-align: center;
   padding: 2rem 1rem;
@@ -566,7 +566,7 @@ a.app-bar-title:hover {
   font-size: 1rem;
 }
 
-/* ── Shared tag style ── */
+/* - Shared tag style - */
 .tag {
   font-family: var(--font-sans);
   font-size: 0.65rem;
@@ -585,7 +585,7 @@ a.app-bar-title:hover {
   background: none;
 }
 
-/* ── Utility ── */
+/* - Utility - */
 .text-muted  { color: var(--color-muted); }
 .text-accent { color: var(--color-candlelight); }
 .text-serif  { font-family: var(--font-serif); }
@@ -606,7 +606,7 @@ a.app-bar-title:hover {
     overflow: hidden;
   }
 
-  /* ── Persistent sidebar drawer ── */
+  /* - Persistent sidebar drawer - */
   .drawer-overlay {
     position: relative;
     width: 280px;
@@ -628,7 +628,7 @@ a.app-bar-title:hover {
 
   .drawer-backdrop { display: none; }
 
-  /* ── Main content column ── */
+  /* - Main content column - */
   .main-content {
     flex: 1;
     display: flex;
@@ -639,7 +639,7 @@ a.app-bar-title:hover {
     overflow: hidden;
   }
 
-  /* ── App bar — tabs move in, piano accent replaces bottom border ── */
+  /* - App bar — tabs move in, piano accent replaces bottom border - */
   .app-bar {
     display: flex;
     align-items: center;

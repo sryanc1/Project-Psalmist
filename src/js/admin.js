@@ -3,23 +3,23 @@ import { requireAuth, signOutUser, onAuthChange } from './auth.js'
 import { getSongs, addSong, updateSong, deleteSong, rebuildIndex } from './songs.js'
 import { parseChorusFile, batchImport } from './import.js'
 
-// ── Auth guard ──
+// - Auth guard -
 requireAuth()
 
-// ── Show admin email ──
+// - Show admin email -
 onAuthChange((user) => {
   const emailEl = document.getElementById('admin-email')
   if (emailEl && user) emailEl.textContent = user.email
 })
 
-// ── Sign out ──
+// - Sign out -
 document.getElementById('signout-btn')
   .addEventListener('click', async () => {
     await signOutUser()
     window.location.href = import.meta.env.BASE_URL
   })
 
-// ── Rebuild index ──
+// - Rebuild index -
 document.getElementById('rebuild-index-btn')
   .addEventListener('click', async () => {
     if (!confirm(
@@ -46,13 +46,13 @@ document.getElementById('rebuild-index-btn')
     }
   })
 
-// ── State ──
+// - State -
 let allSongs    = []
 let editingId   = null  // null = adding, string = editing
 let stanzas     = []    // working stanza list in modal
 let verseCount  = 0
 
-// ── Elements ──
+// - Elements -
 const songListEl     = document.getElementById('song-list')
 const modalOverlay   = document.getElementById('modal-overlay')
 const modalTitle     = document.getElementById('modal-title')
@@ -61,7 +61,7 @@ const stanzaListEl   = document.getElementById('stanza-list')
 const formError      = document.getElementById('form-error')
 const typeBtns       = document.querySelectorAll('.type-btn')
 
-// ── Load songs ──
+// - Load songs -
 async function loadSongs() {
   try {
     const { hymns, choruses } = await getSongs()
@@ -74,7 +74,7 @@ async function loadSongs() {
   }
 }
 
-// ── Render song list ──
+// - Render song list -
 function renderSongList(songs, newId = null) {
   if (songs.length === 0) {
     songListEl.innerHTML =
@@ -113,7 +113,7 @@ function renderSongList(songs, newId = null) {
   })
 }
 
-// ── Modal open — Add ──
+// - Modal open — Add -
 document.getElementById('add-song-btn')
   .addEventListener('click', () => openModal())
 
@@ -144,13 +144,13 @@ function openModal(song = null) {
   document.getElementById('field-title').focus()
 }
 
-// ── Modal open — Edit ──
+// - Modal open — Edit -
 function openEditModal(id) {
   const song = allSongs.find(s => s.id === id)
   if (song) openModal(song)
 }
 
-// ── Modal close ──
+// - Modal close -
 function closeModal() {
   modalOverlay.style.display = 'none'
   editingId  = null
@@ -168,7 +168,7 @@ modalOverlay.addEventListener('click', (e) => {
   if (e.target === modalOverlay) closeModal()
 })
 
-// ── Type toggle ──
+// - Type toggle -
 typeBtns.forEach(btn => {
   btn.addEventListener('click', () => {
     typeBtns.forEach(b => b.classList.remove('active'))
@@ -176,7 +176,7 @@ typeBtns.forEach(btn => {
   })
 })
 
-// ── Stanza rendering ──
+// - Stanza rendering -
 function renderStanzas() {
   stanzaListEl.innerHTML = ''
   stanzas.forEach((stanza, index) => {
@@ -216,7 +216,7 @@ function renderStanzas() {
   })
 }
 
-// ── Add stanza buttons ──
+// - Add stanza buttons -
 document.querySelectorAll('.add-stanza-btn').forEach(btn => {
   btn.addEventListener('click', () => {
     const stype = btn.dataset.stype
@@ -245,7 +245,7 @@ document.querySelectorAll('.add-stanza-btn').forEach(btn => {
   })
 })
 
-// ── Recalculate verse labels after delete ──
+// - Recalculate verse labels after delete -
 function recalculateVerseLabels() {
   let count = 0
   stanzas.forEach(s => {
@@ -257,7 +257,7 @@ function recalculateVerseLabels() {
   verseCount = count
 }
 
-// ── Save ──
+// - Save -
 modalSaveBtn.addEventListener('click', async () => {
   const number = parseInt(document.getElementById('field-number').value) || 0
   const title  = document.getElementById('field-title').value.trim()
@@ -267,7 +267,7 @@ modalSaveBtn.addEventListener('click', async () => {
     .split(',').map(t => t.trim()).filter(Boolean)
   const type   = document.querySelector('.type-btn.active').dataset.type
 
-  // ── Validation ──
+  // - Validation -
   if (!title || !number || stanzas.length === 0) {
     formError.textContent = 'Please add a number, title and at least one stanza.'
     formError.style.display = 'block'
@@ -348,7 +348,7 @@ modalSaveBtn.addEventListener('click', async () => {
   }
 })
 
-// ── Delete ──
+// - Delete -
 async function handleDelete(id) {
   const song = allSongs.find(s => s.id === id)
   if (!confirm(`Delete "${song.title}"? This cannot be undone.`)) return
@@ -362,10 +362,10 @@ async function handleDelete(id) {
   }
 }
 
-// ── Init ──
+// - Init -
 loadSongs()
 
-// ── Bulk import ──
+// - Bulk import -
 const importFile     = document.getElementById('import-file')
 const importFilename = document.getElementById('import-filename')
 const importPreview  = document.getElementById('import-preview')

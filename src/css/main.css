@@ -158,7 +158,7 @@ a.app-bar-title:hover {
   display: flex;
   gap: var(--card-gap);
   align-items: center;
-  padding: 1rem var(--card-gap);
+  /* padding: 1rem var(--card-gap); */
   transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
   will-change: transform;
 }

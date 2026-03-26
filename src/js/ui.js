@@ -1,20 +1,20 @@
 import { auth }               from './firebase.js'
 import { onAuthStateChanged } from 'firebase/auth'
 import { getSongIndex, getSong } from './songs.js'
-import { signInWithGoogle, signOutUser } from './auth.js'
+import { signInWithGoogle }   from './auth.js'
+import { idbGet, idbSet }     from './cache.js'
 
-// - Admin nav -
+// - Auth -
 onAuthStateChanged(auth, (user) => {
   const adminBtn = document.getElementById('admin-link')
   if (!adminBtn) return
-
   adminBtn.style.display = 'block'
-  adminBtn.disabled = false  // ← always re-enable on auth state change
+  adminBtn.disabled = false
 
   if (user) {
-      adminBtn.textContent = '✓ Admin Panel'
-      adminBtn.classList.add('authenticated')
-      adminBtn.onclick = () => {
+    adminBtn.textContent = '✓ Admin Panel'
+    adminBtn.classList.add('authenticated')
+    adminBtn.onclick = () => {
       window.location.href =
         `${import.meta.env.BASE_URL}pages/admin.html`
     }
@@ -36,280 +36,124 @@ onAuthStateChanged(auth, (user) => {
 })
 
 // - Elements -
-const carouselTrack   = document.getElementById('carousel-track')
-const carouselArea    = document.getElementById('carousel-area')
-const navDotsEl       = document.getElementById('nav-dots')
-const arrowPrev       = document.getElementById('arrow-prev')
-const arrowNext       = document.getElementById('arrow-next')
-const drawerOverlay   = document.getElementById('drawer-overlay')
-const drawerList      = document.getElementById('drawer-list')
-const drawerSearch    = document.getElementById('drawer-search')
-const drawerToggle    = document.getElementById('drawer-toggle')
-const drawerClose     = document.getElementById('drawer-close')
-const drawerBackdrop  = document.getElementById('drawer-backdrop')
-const tabBtns         = document.querySelectorAll('.tab-btn')
-const drawerTabBtns   = document.querySelectorAll('.drawer-tab')
+const carouselTrack = document.getElementById('carousel-track')
+const carouselArea = document.getElementById('carousel-area')
+const navDotsEl = document.getElementById('nav-dots')
+const arrowPrev = document.getElementById('arrow-prev')
+const arrowNext = document.getElementById('arrow-next')
+const drawerOverlay = document.getElementById('drawer-overlay')
+const drawerList = document.getElementById('drawer-list')
+const drawerSearch = document.getElementById('drawer-search')
+const drawerToggle = document.getElementById('drawer-toggle')
+const drawerClose = document.getElementById('drawer-close')
+const drawerBackdrop = document.getElementById('drawer-backdrop')
+const tabBtns = document.querySelectorAll('.tab-btn')
+const drawerTabBtns = document.querySelectorAll('.drawer-tab')
 
 // - State -
-let activeTab     = 'choruses'
-let hymnIndex     = null
-let chorusIndex   = null
-const songCache   = new Map()
-let windowSongs   = []
-let windowCenter  = 0
-let fullIndex     = []
-let isAnimating   = false
+let activeTab = 'choruses'
+let hymnIndex = null
+let chorusIndex = null
+let fullIndex = []
+let windowCenter = 0
+let isAnimating = false
 
-const WINDOW_SIZE = 5
-const WINDOW_HALF = Math.floor(WINDOW_SIZE / 2)
+// - Three-tier cache -
+const memoryCache = new Map()
 
-// - Breakpoint -
-const isDesktop = () => window.innerWidth >= 768
+async function getCachedSong(id) {
+  // Layer 1 — memory
+  if (memoryCache.has(id)) return memoryCache.get(id)
 
-// - Init -
-async function init() {
-  await loadTabIndex('choruses')
-  fullIndex = chorusIndex || []
+  // Layer 2 — IndexedDB
+  const cached = await idbGet(id)
+  if (cached) {
+    memoryCache.set(id, cached)
+    return cached
+  }
 
-  const params   = new URLSearchParams(window.location.search)
-  const directId = params.get('id')
-
-  if (directId) {
-    const chorusMatch = chorusIndex?.findIndex(s => s.id === directId)
-    if (chorusMatch !== undefined && chorusMatch >= 0) {
-      await jumpToIndex(chorusMatch)
-    } else {
-      await loadTabIndex('hymns')
-      await switchTab('hymns', false)
-      const hymnMatch = hymnIndex?.findIndex(s => s.id === directId)
-      if (hymnMatch !== undefined && hymnMatch >= 0) {
-        await jumpToIndex(hymnMatch)
-      } else {
-        await jumpToIndex(randomIndex())
-      }
+  // Layer 3 — Firestore
+  try {
+    const song = await getSong(id)
+    if (song) {
+      memoryCache.set(id, song)
+      idbSet(song) // fire and forget
     }
+    return song
+  } catch { return null }
+}
+
+// - Card metrics -
+let cardWidth = 320
+let cardGap = 16
+let centerOffset = 0
+
+function updateMetrics() {
+  const first = carouselTrack.querySelector('.song-card')
+  if (first) cardWidth = first.offsetWidth
+  centerOffset = (carouselArea.offsetWidth - cardWidth) / 2
+}
+
+function getTransformForIndex(idx) {
+  return -(idx * (cardWidth + cardGap)) + centerOffset
+}
+
+// - Build full scaffold -
+function buildTrack() {
+  carouselTrack.innerHTML = ''
+  carouselTrack.style.transition = 'none'
+  carouselTrack.style.transform = ''
+
+  fullIndex.forEach((entry, i) => {
+    const card = document.createElement('div')
+    card.className = 'song-card side empty'
+    card.dataset.id = entry.id
+    card.dataset.index = i
+    card.dataset.populated = 'false'
+    carouselTrack.appendChild(card)
+  })
+
+  // Read actual card width after render
+  requestAnimationFrame(() => {
+    updateMetrics()
+  })
+}
+
+// - Position track -
+function positionTrack(idx, animated) {
+  if (!animated) {
+    carouselTrack.style.transition = 'none'
+    void carouselTrack.offsetWidth // force reflow
   } else {
-    await jumpToIndex(randomIndex())
+    carouselTrack.style.transition =
+      'transform 0.35s cubic-bezier(0.4, 0, 0.2, 1)'
   }
-
-  renderDrawerList(fullIndex)
-
-  if (isDesktop()) {
-    openDrawer(false)
-  }
+  carouselTrack.style.transform =
+    `translateX(${getTransformForIndex(idx)}px)`
 }
 
-function randomIndex() {
-  if (!fullIndex.length) return 0
-  return Math.floor(Math.random() * fullIndex.length)
-}
-
-// - Load index -
-async function loadTabIndex(tab) {
-  if (tab === 'choruses' && chorusIndex) return chorusIndex
-  if (tab === 'hymns'    && hymnIndex)   return hymnIndex
-  const type  = tab === 'hymns' ? 'hymn' : 'chorus'
-  const songs = await getSongIndex(type)
-  if (tab === 'choruses') chorusIndex = songs
-  else                    hymnIndex   = songs
-  return songs
-}
-
-// - Switch tab -
-async function switchTab(tab, jump = true) {
-  if (tab === activeTab) return
-  activeTab = tab
-
-  tabBtns.forEach(b =>
-    b.classList.toggle('active', b.dataset.tab === tab))
-  drawerTabBtns.forEach(b =>
-    b.classList.toggle('active', b.dataset.tab === tab))
-
-  await loadTabIndex(tab)
-  fullIndex = tab === 'hymns' ? hymnIndex : chorusIndex
-
-  renderDrawerList(fullIndex)
-
-  if (jump) await jumpToIndex(randomIndex())
-}
-
-// - Fetch window -
-async function fetchWindow(centerIdx) {
-  const start  = Math.max(0, centerIdx - WINDOW_HALF)
-  const end    = Math.min(fullIndex.length - 1, centerIdx + WINDOW_HALF)
-  const needed = []
+// - Update active/side classes around center -
+function updateCardClasses(center) {
+  const range = 3
+  const start = Math.max(0, center - range)
+  const end = Math.min(fullIndex.length - 1, center + range)
+  const cards = carouselTrack.querySelectorAll('.song-card')
 
   for (let i = start; i <= end; i++) {
-    if (!songCache.has(fullIndex[i].id)) needed.push(fullIndex[i].id)
+    if (!cards[i]) continue
+    cards[i].classList.toggle('active', i === center)
+    cards[i].classList.toggle('side', i !== center)
   }
-
-  if (needed.length > 0) {
-    const fetched = await Promise.all(needed.map(id => getSong(id)))
-    fetched.forEach(s => { if (s) songCache.set(s.id, s) })
-  }
-
-  // Silent pre-fetch beyond window edges
-  ;[start - 1, end + 1].forEach(i => {
-    if (i >= 0 && i < fullIndex.length &&
-        !songCache.has(fullIndex[i].id)) {
-      getSong(fullIndex[i].id)
-        .then(s => { if (s) songCache.set(s.id, s) })
-    }
-  })
-
-  return Array.from({ length: end - start + 1 }, (_, i) => {
-    const entry = fullIndex[start + i]
-    return songCache.get(entry.id) || { ...entry, lyrics: [] }
-  })
 }
 
-// - Jump - snap directly, no animation -
-async function jumpToIndex(idx) {
-  windowCenter = Math.max(0, Math.min(idx, fullIndex.length - 1))
-  windowSongs  = await fetchWindow(windowCenter)
+// - Fill a card shell with song data -
+function fillCard(card, song) {
+  if (!song || card.dataset.populated === 'true') return
+  card.dataset.populated = 'true'
+  card.classList.remove('empty')
 
-  setTrackTransition(false)
-  void carouselTrack.offsetWidth
-  renderCarousel()
-  void carouselTrack.offsetWidth
-  setTrackTransition(true)
-
-  renderNavDots()
-  updateDrawerHighlight()
-  updateURL()
-}
-
-// - Render carousel -
-function renderCarousel() {
-  const localCenter =
-    windowCenter - Math.max(0, windowCenter - WINDOW_HALF)
-
-    // - DEBUG -
-  const existingCards = carouselTrack.querySelectorAll('.song-card')
-  console.log('=== renderCarousel ===')
-  console.log('windowCenter:', windowCenter)
-  console.log('localCenter:', localCenter)
-  console.log('windowSongs.length:', windowSongs.length)
-  console.log('existingCards.length:', existingCards.length)
-  console.log('taking path:', existingCards.length === windowSongs.length ? 'IN-PLACE' : 'REBUILD')
-  windowSongs.forEach((s, i) => {
-    console.log(`  slot ${i}: ${s.number} ${s.title} ${i === localCenter ? '← ACTIVE' : ''}`)
-  })
-  // - END DEBUG -
-
-  if (existingCards.length === windowSongs.length) {
-    // - In-place update — preserve DOM for smooth animation -
-    windowSongs.forEach((song, i) => {
-      const card     = existingCards[i]
-      const isActive = i === localCenter
-
-      // Update active/side class
-      card.classList.toggle('active', isActive)
-      card.classList.toggle('side',   !isActive)
-
-      // Only rebuild card content if song changed
-      if (card.dataset.id !== song.id) {
-        const newCard = buildCard(song, isActive)
-        // Copy content but keep the same DOM node
-        card.dataset.id  = song.id
-        card.innerHTML   = newCard.innerHTML
-        // Re-wire share button
-        card.querySelector('.share-btn')
-          ?.addEventListener('click', (e) => {
-            e.stopPropagation()
-            const url =
-              `${window.location.origin}${import.meta.env.BASE_URL}?id=${song.id}`
-            navigator.clipboard.writeText(url).then(() => {
-              const btn = card.querySelector('.share-btn')
-              btn.textContent = 'Link copied!'
-              setTimeout(() => btn.textContent = 'Share song', 2000)
-            })
-          })
-        // Re-wire side card click
-        if (!isActive) {
-          card.onclick = () => {
-            const cards   = Array.from(carouselTrack.children)
-            const thisIdx = cards.indexOf(card)
-            const actIdx  = cards.findIndex(c =>
-              c.classList.contains('active'))
-            navigate(thisIdx < actIdx ? -1 : 1)
-          }
-        } else {
-          card.onclick = null
-        }
-      } else {
-        // Same song — just update click handler
-        if (!isActive) {
-          card.onclick = () => {
-            const cards   = Array.from(carouselTrack.children)
-            const thisIdx = cards.indexOf(card)
-            const actIdx  = cards.findIndex(c =>
-              c.classList.contains('active'))
-            navigate(thisIdx < actIdx ? -1 : 1)
-          }
-        } else {
-          card.onclick = null
-        }
-      }
-    })
-  } else {
-    // - First render only — build from scratch -
-    carouselTrack.innerHTML = ''
-    windowSongs.forEach((song, i) => {
-      carouselTrack.appendChild(buildCard(song, i === localCenter))
-    })
-  }
-
-  requestAnimationFrame(() => {
-    requestAnimationFrame(() => positionTrack(localCenter))
-  })
-  updateArrows()
-}
-
-function positionTrack(localCenter) {
-  const cards     = carouselTrack.querySelectorAll('.song-card')
-  if (!cards.length) return
-  const areaWidth = carouselArea.offsetWidth
-  if (!areaWidth) return
-  const card      = cards[localCenter]
-  if (!card) return
-  const cardWidth = card.offsetWidth
-  const gap       = 16
-
-  let offset = 0
-  for (let i = 0; i < localCenter; i++) {
-    offset += (cards[i]?.offsetWidth || 280) + gap
-  }
-  offset = offset - areaWidth / 2 + cardWidth / 2
-
-  // - DEBUG -
-  const currentTransform = carouselTrack.style.transform
-  const computedStyle    = window.getComputedStyle(carouselTrack)
-  console.log('=== positionTrack ===')
-  console.log('localCenter:', localCenter)
-  console.log('windowCenter:', windowCenter)
-  console.log('cardCount:', cards.length)
-  console.log('areaWidth:', areaWidth)
-  console.log('cardWidth:', cardWidth)
-  console.log('offset:', -offset)
-  console.log('current inline transform:', currentTransform)
-  console.log('computed transition:', computedStyle.transition)
-  console.log('computed transform:', computedStyle.transform)
-  // - END DEBUG -
-
-  carouselTrack.style.transform = `translateX(${-offset}px)`
-
-  console.log('new transform set:', `translateX(${-offset}px)`)
-}
-
-// - Build card -
-function buildCard(song, isActive) {
-  const card       = document.createElement('div')
-  card.className   = `song-card ${isActive ? 'active' : 'side'}`
-  card.dataset.id  = song.id
-
-  const typeLabel  = song.type === 'hymn' ? 'Hymn' : 'Chorus'
-  const tags       = (song.tags || [])
+  const typeLabel = song.type === 'hymn' ? 'Hymn' : 'Chorus'
+  const tags = (song.tags || [])
     .map(t => `<span class="tag">${t}</span>`).join('')
 
   card.innerHTML = `
@@ -334,11 +178,11 @@ function buildCard(song, isActive) {
       ${renderLyrics(song)}
     </div>
     <div class="card-share">
-      <button class="share-btn" data-id="${song.id}">Share song</button>
+      <button class="share-btn">Share song</button>
     </div>`
 
   card.querySelector('.share-btn')
-    .addEventListener('click', (e) => {
+    ?.addEventListener('click', (e) => {
       e.stopPropagation()
       const url =
         `${window.location.origin}${import.meta.env.BASE_URL}?id=${song.id}`
@@ -348,24 +192,39 @@ function buildCard(song, isActive) {
         setTimeout(() => btn.textContent = 'Share song', 2000)
       })
     })
-
-  if (!isActive) {
-    card.addEventListener('click', () => {
-      const cards  = Array.from(carouselTrack.children)
-      const thisIdx = cards.indexOf(card)
-      const actIdx  = cards.findIndex(c =>
-        c.classList.contains('active'))
-      navigate(thisIdx < actIdx ? -1 : 1)
-    })
-  }
-
-  return card
 }
 
-// - Lyrics -
+// - Populate ±2 window -
+async function populateWindow(center) {
+  const start = Math.max(0, center - 2)
+  const end = Math.min(fullIndex.length - 1, center + 2)
+  const cards = carouselTrack.querySelectorAll('.song-card')
+
+  const fetches = []
+  for (let i = start; i <= end; i++) {
+    const card = cards[i]
+    if (!card || card.dataset.populated === 'true') continue
+    const id = fullIndex[i].id
+    fetches.push(
+      getCachedSong(id).then(song => {
+        if (song) fillCard(card, song)
+      })
+    )
+  }
+  await Promise.all(fetches)
+
+  // Silent pre-fetch beyond window
+  ;[start - 1, end + 1].forEach(i => {
+    if (i >= 0 && i < fullIndex.length) {
+      getCachedSong(fullIndex[i].id)
+    }
+  })
+}
+
+// - Lyrics renderer -
 function renderLyrics(song) {
   if (!song.lyrics || song.lyrics.length === 0) {
-    return `<p class="state-message">Loading...</p>`
+    return `<p class="state-message">No lyrics available.</p>`
   }
   return song.lyrics.map(stanza => {
     const isRefrain =
@@ -382,24 +241,19 @@ function renderLyrics(song) {
   }).join('')
 }
 
-// - Navigate - two phase: animate then snap -
+// - Navigate -
 async function navigate(direction) {
   if (isAnimating) return
   const newCenter = windowCenter + direction
   if (newCenter < 0 || newCenter >= fullIndex.length) return
+
   isAnimating = true
+  windowCenter = newCenter
 
-  // Phase 1 — animate one card-width in direction of travel
-  const cards     = carouselTrack.querySelectorAll('.song-card')
-  const cardWidth = cards[0]?.offsetWidth || 300
-  const gap       = 16
-  const currentX  = getTranslateX(carouselTrack)
-  const targetX   = currentX - direction * (cardWidth + gap)
+  updateCardClasses(windowCenter)
+  positionTrack(windowCenter, true)
 
-  setTrackTransition(true)
-  carouselTrack.style.transform = `translateX(${targetX}px)`
-
-  // Wait for transition using transitionend — more reliable than delay()
+  // Wait for transition to complete
   await new Promise(resolve => {
     const onEnd = (e) => {
       if (e.propertyName !== 'transform') return
@@ -407,41 +261,65 @@ async function navigate(direction) {
       resolve()
     }
     carouselTrack.addEventListener('transitionend', onEnd)
-    // Safety fallback in case transitionend doesn't fire
-    setTimeout(resolve, 400)
+    setTimeout(resolve, 400) // safety fallback
   })
 
-  // Phase 2 — fetch new window content
-  windowCenter = newCenter
-  windowSongs  = await fetchWindow(windowCenter)
-
-  // Phase 3 — disable transition, force reflow, snap, force reflow, re-enable
-  setTrackTransition(false)
-  void carouselTrack.offsetWidth   // flush pending styles — KEY FIX
-  renderCarousel()                  // snap to correct position
-  void carouselTrack.offsetWidth   // flush again before re-enabling
-  setTrackTransition(true)
-
-  isAnimating = false
+  await populateWindow(windowCenter)
   updateDrawerHighlight()
   updateURL()
   renderNavDots()
+  updateArrows()
+
+  isAnimating = false
 }
 
-// - Helper -
-function getTranslateX(el) {
-  const match = el.style.transform.match(/translateX\(([^)]+)px\)/)
-  return match ? parseFloat(match[1]) : 0
+// - Jump to index (no animation) -
+async function jumpToIndex(idx) {
+  windowCenter = Math.max(0, Math.min(idx, fullIndex.length - 1))
+
+  updateCardClasses(windowCenter)
+
+  // Need metrics before positioning
+  requestAnimationFrame(async () => {
+    updateMetrics()
+    positionTrack(windowCenter, false)
+    await populateWindow(windowCenter)
+    renderNavDots()
+    updateDrawerHighlight()
+    updateURL()
+    updateArrows()
+  })
 }
 
-function delay(ms) {
-  return new Promise(resolve => setTimeout(resolve, ms))
+// - Switch tab -
+async function switchTab(tab) {
+  if (tab === activeTab && fullIndex.length > 0) return
+  activeTab = tab
+
+  tabBtns.forEach(b =>
+    b.classList.toggle('active', b.dataset.tab === tab))
+  drawerTabBtns.forEach(b =>
+    b.classList.toggle('active', b.dataset.tab === tab))
+
+  await loadTabIndex(tab)
+  fullIndex = tab === 'hymns' ? hymnIndex : chorusIndex
+
+  buildTrack()
+  renderDrawerList(fullIndex)
+
+  // Jump to random song on tab switch
+  const idx = Math.floor(Math.random() * fullIndex.length)
+  setTimeout(() => jumpToIndex(idx), 50)
 }
 
-function setTrackTransition(enabled) {
-  carouselTrack.style.transition = enabled
-    ? 'transform 0.35s cubic-bezier(0.4, 0, 0.2, 1)'
-    : 'none'
+// - Load index -
+async function loadTabIndex(tab) {
+  if (tab === 'choruses' && chorusIndex) return
+  if (tab === 'hymns'    && hymnIndex)   return
+  const type = tab === 'hymns' ? 'hymn' : 'chorus'
+  const songs = await getSongIndex(type)
+  if (tab === 'choruses') chorusIndex = songs
+  else                    hymnIndex = songs
 }
 
 // - Arrows -
@@ -481,26 +359,27 @@ carouselArea.addEventListener('touchend', (e) => {
 
 // - Nav dots -
 function renderNavDots() {
-  const total   = fullIndex.length
-  const maxDots = 7
+  const total = fullIndex.length
   navDotsEl.innerHTML = ''
 
-  if (total <= maxDots) {
+  if (total <= 7) {
     fullIndex.forEach((_, i) => {
-      const dot = document.createElement('div')
+      const dot    = document.createElement('div')
       dot.className = `nav-dot ${i === windowCenter ? 'active' : ''}`
       dot.addEventListener('click', () => jumpToIndex(i))
       navDotsEl.appendChild(dot)
     })
   } else {
-    const label = document.createElement('span')
-    label.className   = 'nav-position'
+    const label    = document.createElement('span')
+    label.className = 'nav-position'
     label.textContent = `${windowCenter + 1} of ${total}`
     navDotsEl.appendChild(label)
   }
 }
 
 // - Drawer -
+const isDesktop = () => window.innerWidth >= 768
+
 function openDrawer(animate = true) {
   if (!animate) drawerOverlay.style.transition = 'none'
   drawerOverlay.classList.add('open')
@@ -524,18 +403,13 @@ function closeDrawer() {
 if (drawerToggle) {
   drawerToggle.addEventListener('click', () => {
     drawerOverlay.classList.contains('open')
-      ? closeDrawer()
-      : openDrawer()
+      ? closeDrawer() : openDrawer()
   })
 }
 
-if (drawerClose) {
-  drawerClose.addEventListener('click', closeDrawer)
-}
-
+if (drawerClose) drawerClose.addEventListener('click', closeDrawer)
 drawerBackdrop.addEventListener('click', closeDrawer)
 
-// - Drawer tabs -
 drawerTabBtns.forEach(btn => {
   btn.addEventListener('click', async () => {
     if (btn.dataset.tab === activeTab) return
@@ -544,7 +418,6 @@ drawerTabBtns.forEach(btn => {
   })
 })
 
-// - Main tabs -
 tabBtns.forEach(btn => {
   btn.addEventListener('click', () => switchTab(btn.dataset.tab))
 })
@@ -552,13 +425,12 @@ tabBtns.forEach(btn => {
 // - Drawer list -
 function renderDrawerList(songs) {
   if (!songs || songs.length === 0) {
-    drawerList.innerHTML = `
-      <div class="state-message" style="color:#9A9690;">
+    drawerList.innerHTML =
+      `<div class="state-message" style="color:#9A9690;">
         No songs found.
       </div>`
     return
   }
-
   drawerList.innerHTML = songs.map((song, i) => {
     const globalIdx = fullIndex.findIndex(s => s.id === song.id)
     return `
@@ -583,18 +455,6 @@ function renderDrawerList(songs) {
   })
 }
 
-// - Drawer search -
-drawerSearch.addEventListener('input', () => {
-  const q = drawerSearch.value.toLowerCase().trim()
-  if (!q) { renderDrawerList(fullIndex); return }
-  const filtered = fullIndex.filter(s =>
-    s.title.toLowerCase().includes(q) ||
-    s.number.toString() === q
-  )
-  renderDrawerList(filtered)
-})
-
-// - Drawer highlight -
 function updateDrawerHighlight() {
   drawerList.querySelectorAll('.drawer-row').forEach(row => {
     row.classList.toggle(
@@ -606,6 +466,17 @@ function updateDrawerHighlight() {
   if (active) active.scrollIntoView({ block: 'nearest' })
 }
 
+// - Drawer search -
+drawerSearch.addEventListener('input', () => {
+  const q = drawerSearch.value.toLowerCase().trim()
+  if (!q) { renderDrawerList(fullIndex); return }
+  const filtered = fullIndex.filter(s =>
+    s.title.toLowerCase().includes(q) ||
+    s.number.toString() === q
+  )
+  renderDrawerList(filtered)
+})
+
 // - URL -
 function updateURL() {
   const song = fullIndex[windowCenter]
@@ -615,7 +486,7 @@ function updateURL() {
 }
 
 window.addEventListener('popstate', () => {
-  const id  = new URLSearchParams(window.location.search).get('id')
+  const id = new URLSearchParams(window.location.search).get('id')
   if (!id) return
   const idx = fullIndex.findIndex(s => s.id === id)
   if (idx >= 0) jumpToIndex(idx)
@@ -626,10 +497,43 @@ window.addEventListener('resize', () => {
   if (isDesktop() && !drawerOverlay.classList.contains('open')) {
     openDrawer(false)
   }
-  const localCenter =
-    windowCenter - Math.max(0, windowCenter - WINDOW_HALF)
-  positionTrack(localCenter)
+  updateMetrics()
+  positionTrack(windowCenter, false)
 })
 
-// - Start -
+// - Init -
+async function init() {
+  await loadTabIndex('choruses')
+  fullIndex = chorusIndex || []
+
+  buildTrack()
+  renderDrawerList(fullIndex)
+
+  // Check for direct URL
+  const params = new URLSearchParams(window.location.search)
+  const directId = params.get('id')
+
+  if (directId) {
+    const chorusMatch = chorusIndex?.findIndex(s => s.id === directId)
+    if (chorusMatch !== undefined && chorusMatch >= 0) {
+      setTimeout(() => jumpToIndex(chorusMatch), 50)
+    } else {
+      await loadTabIndex('hymns')
+      await switchTab('hymns')
+      const hymnMatch = hymnIndex?.findIndex(s => s.id === directId)
+      if (hymnMatch !== undefined && hymnMatch >= 0) {
+        setTimeout(() => jumpToIndex(hymnMatch), 50)
+      } else {
+        setTimeout(() => jumpToIndex(
+          Math.floor(Math.random() * fullIndex.length)), 50)
+      }
+    }
+  } else {
+    setTimeout(() => jumpToIndex(
+      Math.floor(Math.random() * fullIndex.length)), 50)
+  }
+
+  if (isDesktop()) openDrawer(false)
+}
+
 init()

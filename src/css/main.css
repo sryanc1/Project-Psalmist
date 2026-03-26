@@ -159,9 +159,7 @@ a.app-bar-title:hover {
   display: flex;
   gap: var(--card-gap);
   align-items: stretch;
-  padding: 1rem 0rem var(--card-gap);
   will-change: transform;
-  /* transition removed — controlled by JS */
 }
 
 /* - Song card - */
@@ -177,8 +175,9 @@ a.app-bar-title:hover {
   transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1),
               opacity 0.35s ease;
   will-change: transform, opacity;
-  height: calc(100vh - 220px);
-  height: calc(100dvh - 220px);
+  height: calc(100dvh - 200px);
+  max-height: 640px;
+  min-height: 320px;
 }
 .song-card.side {
   transform: scale(0.92);
@@ -188,6 +187,17 @@ a.app-bar-title:hover {
 .song-card.active {
   transform: scale(1);
   opacity: 1;
+}
+
+/* Empty shell — no content yet */
+.song-card.empty {
+  background: var(--color-ivory);
+  opacity: 0.3;
+  transform: scale(0.88);
+}
+.song-card.empty.active {
+  opacity: 0.6;
+  transform: scale(1);
 }
 
 /* - Card header - */

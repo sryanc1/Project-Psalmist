@@ -176,8 +176,8 @@ a.app-bar-title:hover {
   transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1),
               opacity 0.35s ease;
   will-change: transform, opacity;
-  max-height: calc(100vh - 220px);
-  max-height: calc(100dvh - 220px);
+  height: calc(100vh - 220px);
+  height: calc(100dvh - 220px);
 }
 .song-card.side {
   transform: scale(0.92);

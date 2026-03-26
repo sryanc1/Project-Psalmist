@@ -153,6 +153,7 @@ a.app-bar-title:hover {
   display: flex;
   align-items: center;
   touch-action: pan-y;
+  height: 85vh;
 }
 .carousel-track {
   display: flex;

@@ -234,12 +234,12 @@ function positionTrack(localCenter, windowStart = 0) {
   const cardWidth = card.offsetWidth
   const gap       = 16
 
-  // Calculate offset from all cards before the window
-  let offset = windowStart * (280 + gap)  // estimate avg card width
+  // Calculate offset from all cards before the window using actual measured width
+  let offset = windowStart * (cardWidth + gap)
 
   // Then add cards in the current window up to localCenter
   for (let i = 0; i < localCenter; i++) {
-    offset += (cards[i]?.offsetWidth || 280) + gap
+    offset += (cards[i]?.offsetWidth || cardWidth) + gap
   }
   offset = offset - areaWidth / 2 + cardWidth / 2
   carouselTrack.style.transform = `translateX(${-offset}px)`

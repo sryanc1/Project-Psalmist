@@ -178,7 +178,18 @@ function renderCarousel() {
   const localCenter =
     windowCenter - Math.max(0, windowCenter - WINDOW_HALF)
 
+    // ── DEBUG ──
   const existingCards = carouselTrack.querySelectorAll('.song-card')
+  console.log('=== renderCarousel ===')
+  console.log('windowCenter:', windowCenter)
+  console.log('localCenter:', localCenter)
+  console.log('windowSongs.length:', windowSongs.length)
+  console.log('existingCards.length:', existingCards.length)
+  console.log('taking path:', existingCards.length === windowSongs.length ? 'IN-PLACE' : 'REBUILD')
+  windowSongs.forEach((s, i) => {
+    console.log(`  slot ${i}: ${s.number} ${s.title} ${i === localCenter ? '← ACTIVE' : ''}`)
+  })
+  // ── END DEBUG ──
 
   if (existingCards.length === windowSongs.length) {
     // ── In-place update — preserve DOM for smooth animation ──
@@ -250,26 +261,39 @@ function renderCarousel() {
 }
 
 function positionTrack(localCenter) {
-  const cards = carouselTrack.querySelectorAll('.song-card')
+  const cards     = carouselTrack.querySelectorAll('.song-card')
   if (!cards.length) return
-
   const areaWidth = carouselArea.offsetWidth
-  if (!areaWidth) return  // guard against layout not ready
-
+  if (!areaWidth) return
   const card      = cards[localCenter]
   if (!card) return
   const cardWidth = card.offsetWidth
   const gap       = 16
 
-  // Sum up widths of all cards before localCenter (only cards in the DOM window)
   let offset = 0
   for (let i = 0; i < localCenter; i++) {
-    offset += (cards[i]?.offsetWidth || cardWidth) + gap
+    offset += (cards[i]?.offsetWidth || 280) + gap
   }
-
-  // Center the active card in the viewport
   offset = offset - areaWidth / 2 + cardWidth / 2
+
+  // ── DEBUG ──
+  const currentTransform = carouselTrack.style.transform
+  const computedStyle    = window.getComputedStyle(carouselTrack)
+  console.log('=== positionTrack ===')
+  console.log('localCenter:', localCenter)
+  console.log('windowCenter:', windowCenter)
+  console.log('cardCount:', cards.length)
+  console.log('areaWidth:', areaWidth)
+  console.log('cardWidth:', cardWidth)
+  console.log('offset:', -offset)
+  console.log('current inline transform:', currentTransform)
+  console.log('computed transition:', computedStyle.transition)
+  console.log('computed transform:', computedStyle.transform)
+  // ── END DEBUG ──
+
   carouselTrack.style.transform = `translateX(${-offset}px)`
+
+  console.log('new transform set:', `translateX(${-offset}px)`)
 }
 
 // - Build card -

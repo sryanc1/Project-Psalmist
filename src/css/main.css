@@ -15,7 +15,7 @@
   --radius-md:   6px;
   --radius-lg:   12px;
   --transition:  0.15s ease;
-  --card-width:  min(320px, 78vw);
+  --card-width:  min(350px, 78vw);
   --card-gap:    16px;
 }
 

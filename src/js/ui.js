@@ -62,17 +62,17 @@ let isAnimating = false
 const memoryCache = new Map()
 
 async function getCachedSong(id) {
-  // Layer 1 — memory
+  // Layer 1 - memory
   if (memoryCache.has(id)) return memoryCache.get(id)
 
-  // Layer 2 — IndexedDB
+  // Layer 2 - IndexedDB
   const cached = await idbGet(id)
   if (cached) {
     memoryCache.set(id, cached)
     return cached
   }
 
-  // Layer 3 — Firestore
+  // Layer 3 - Firestore
   try {
     const song = await getSong(id)
     if (song) {

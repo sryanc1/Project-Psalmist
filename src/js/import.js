@@ -1,5 +1,5 @@
-import { db }            from './firebase.js'
-import { rebuildIndex }  from './songs.js'
+import { db } from './firebase.js'
+import { rebuildIndex } from './songs.js'
 import {
   collection,
   writeBatch,
@@ -8,12 +8,12 @@ import {
 } from 'firebase/firestore'
 
 const SONGS_COLLECTION = 'songs'
-const BATCH_SIZE       = 400
+const BATCH_SIZE = 400
 
 // - Parse text file into song objects -
 export function parseChorusFile(text) {
-  const songs  = []
-  let current  = null
+  const songs = []
+  let current = null
 
   // Normalise line endings and split into blocks
   const blocks = text
@@ -24,12 +24,12 @@ export function parseChorusFile(text) {
     .filter(b => b.length > 0)
 
   for (const block of blocks) {
-    const lines     = block.split('\n').map(l => l.trim()).filter(l => l)
+    const lines = block.split('\n').map(l => l.trim()).filter(l => l)
     if (!lines.length) continue
 
     const firstLine = lines[0]
 
-    // - New song — bare integer -
+    // - New song - bare integer -
     if (/^\d+$/.test(firstLine)) {
       if (current) songs.push(finaliseSong(current))
       current = {
@@ -61,7 +61,7 @@ export function parseChorusFile(text) {
       ]
       current.lyrics.push({
         type:  'refrain-alt',
-        label: 'Refrain 2',
+        label: 'Alt Chorus',
         lines: lyricLines
       })
       continue
@@ -76,7 +76,7 @@ export function parseChorusFile(text) {
       ]
       current.lyrics.push({
         type:  'refrain',
-        label: 'Refrain',
+        label: 'Chorus',
         lines: lyricLines
       })
       continue
@@ -98,20 +98,20 @@ export function parseChorusFile(text) {
   return songs
 }
 
-// - Finalise song — fill in defaults -
+// - Finalise song - fill in defaults -
 function finaliseSong(song) {
   // Derive title from first lyric line of first stanza
   const firstStanza = song.lyrics.find(s => s.type === 'verse')
   const title = firstStanza?.lines?.[0] || `Song ${song.number}`
 
   return {
-    number:      song.number,
-    type:        'chorus',
-    title:       toTitleCase(title),
-    author:      '',
-    key:         '',
-    tags:        [],
-    lyrics:      song.lyrics,
+    number: song.number,
+    type: 'chorus',
+    title: toTitleCase(title),
+    author: '',
+    key:'',
+    tags: [],
+    lyrics: song.lyrics,
     hasMusicXml: false
   }
 }
@@ -134,10 +134,39 @@ function toTitleCase(str) {
     .join(' ')
 }
 
+//  - Deduplicate against existing songs  -
+async function deduplicateSongs(songs, type) {
+  const existing = await getSongIndex(type)
+
+  const existingNumbers = new Set(existing.map(s => s.number))
+  const existingTitles  = new Set(
+    existing.map(s => s.title.toLowerCase().trim())
+  )
+
+  const unique = []
+  const skipped = []
+
+  songs.forEach(song => {
+    const titleKey = song.title.toLowerCase().trim()
+    if (existingNumbers.has(song.number)) {
+      skipped.push({ ...song, reason: `Number ${song.number} already exists` })
+    } else if (existingTitles.has(titleKey)) {
+      skipped.push({ ...song, reason: `Title "${song.title}" already exists` })
+    } else {
+      unique.push(song)
+      // Add to sets so duplicates within the import file are also caught
+      existingNumbers.add(song.number)
+      existingTitles.add(titleKey)
+    }
+  })
+
+  return { unique, skipped }
+}
+
 // - Batch write songs to Firestore -
 export async function batchImport(songs, onProgress) {
-  const total   = songs.length
-  let   written = 0
+  const total = songs.length
+  let written = 0
 
   // Split into chunks of BATCH_SIZE
   for (let i = 0; i < songs.length; i += BATCH_SIZE) {

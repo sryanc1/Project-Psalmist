@@ -59,7 +59,7 @@ export async function rebuildIndex(type) {
   return entries
 }
 
-// - Patch index — add or update one entry -
+// - Patch index - add or update one entry -
 async function patchIndexAdd(type, song) {
   const current = await getSongIndex(type)
   const filtered = current.filter(s => s.id !== song.id)
@@ -71,7 +71,7 @@ async function patchIndexAdd(type, song) {
   })
 }
 
-// - Patch index — remove one entry -
+// - Patch index - remove one entry -
 async function patchIndexRemove(type, id) {
   const current = await getSongIndex(type)
   const updated  = current.filter(s => s.id !== id)

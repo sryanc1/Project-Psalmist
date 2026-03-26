@@ -113,7 +113,7 @@ function renderSongList(songs, newId = null) {
   })
 }
 
-// - Modal open — Add -
+// - Modal open - Add -
 document.getElementById('add-song-btn')
   .addEventListener('click', () => openModal())
 
@@ -144,7 +144,7 @@ function openModal(song = null) {
   document.getElementById('field-title').focus()
 }
 
-// - Modal open — Edit -
+// - Modal open - Edit -
 function openEditModal(id) {
   const song = allSongs.find(s => s.id === id)
   if (song) openModal(song)
@@ -274,7 +274,7 @@ modalSaveBtn.addEventListener('click', async () => {
     return
   }
 
-  // Duplicate number check — within same type only
+  // Duplicate number check - within same type only
   const numberExists = allSongs.some(s =>
     s.type === type &&
     s.number === number &&
@@ -287,7 +287,7 @@ modalSaveBtn.addEventListener('click', async () => {
     return
   }
 
-  // Duplicate title check — warn but allow
+  // Duplicate title check - warn but allow
   const titleExists = allSongs.some(s =>
     s.title.toLowerCase() === title.toLowerCase() &&
     s.id !== editingId
@@ -300,7 +300,7 @@ modalSaveBtn.addEventListener('click', async () => {
   }
   formError.style.display = 'none'
 
-  // Clean stanzas — filter empty lines
+  // Clean stanzas - filter empty lines
   const cleanStanzas = stanzas.map(s => ({
     ...s,
     lines: s.lines.filter(l => l.trim() !== '')
@@ -404,7 +404,7 @@ function renderImportPreview(songs) {
 
   importPreview.innerHTML = `
     <div class="preview-summary">
-      Found ${songs.length} songs — review before importing:
+      Found ${songs.length} songs - review before importing:
     </div>
     <div class="preview-list">
       ${songs.map(s => `
@@ -424,41 +424,49 @@ importBtn.addEventListener('click', async () => {
 
   if (!confirm(
     `Import ${parsedSongs.length} choruses into Firestore? ` +
-    `This cannot be undone.`)) return
+    `Duplicates will be skipped automatically.`)) return
 
-  importBtn.disabled         = true
+  importBtn.disabled = true
   importProgress.classList.add('visible')
-  importResult.className     = 'import-result'
+  importResult.className = 'import-result'
 
   try {
-    await batchImport(parsedSongs, (written, total) => {
-      const pct = Math.round((written / total) * 100)
-      progressFill.style.width  = `${pct}%`
-      progressLabel.textContent = `${pct}%`
-    })
+    const { imported, skipped, skippedSongs } =
+      await batchImport(parsedSongs, 'chorus', (written, total) => {
+        const pct = Math.round((written / total) * 100)
+        progressFill.style.width  = `${pct}%`
+        progressLabel.textContent = `${pct}%`
+      })
 
     progressFill.style.width  = '100%'
     progressLabel.textContent = '100%'
 
-    importResult.textContent =
-      `Successfully imported ${parsedSongs.length} choruses ` +
-      `and rebuilt the index.`
+    // Build result message
+    let message = `Successfully imported ${imported} song${imported !== 1 ? 's' : ''}.`
+    if (skipped > 0) {
+      message += ` ${skipped} duplicate${skipped !== 1 ? 's' : ''} skipped:`
+      const skipList = skippedSongs
+        .map(s => `  #${s.number} "${s.title}" — ${s.reason}`)
+        .join('\n')
+      message += `\n${skipList}`
+    }
+
+    importResult.style.whiteSpace = 'pre-wrap'
+    importResult.textContent      = message
     importResult.classList.add('visible', 'success')
 
-    // Reload song list
     await loadSongs()
 
   } catch (err) {
     console.error('Import failed:', err)
     importResult.textContent =
-      `Import failed: ${err.message}. ` +
-      `Check the console for details.`
+      `Import failed: ${err.message}. Check the console for details.`
     importResult.classList.add('visible', 'error')
   } finally {
     importBtn.disabled = false
     importProgress.classList.remove('visible')
-    parsedSongs = []
-    importFile.value = ''
+    parsedSongs            = []
+    importFile.value       = ''
     importFilename.textContent = 'No file chosen'
     importPreview.classList.remove('visible')
   }

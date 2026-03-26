@@ -19,7 +19,7 @@ async function init() {
       showError('Song not found.')
       return
     }
-    document.title = `${song.title} — Project Psalmist`
+    document.title = `${song.title} - Project Psalmist`
     renderSong(song)
   } catch (err) {
     console.error('Failed to load song:', err)

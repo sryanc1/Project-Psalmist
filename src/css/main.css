@@ -189,7 +189,7 @@ a.app-bar-title:hover {
   opacity: 1;
 }
 
-/* Empty shell — no content yet */
+/* Empty shell - no content yet */
 .song-card.empty {
   background: var(--color-ivory);
   opacity: 0.3;
@@ -610,7 +610,7 @@ a.app-bar-title:hover {
 
   .mobile-only { display: none !important; }
 
-  /* Body becomes a row — drawer left, content right */
+  /* Body becomes a row - drawer left, content right */
   .app-body {
     flex-direction: row;
     overflow: hidden;
@@ -649,7 +649,7 @@ a.app-bar-title:hover {
     overflow: hidden;
   }
 
-  /* - App bar — tabs move in, piano accent replaces bottom border - */
+  /* - App bar - tabs move in, piano accent replaces bottom border - */
   .app-bar {
     display: flex;
     align-items: center;
@@ -679,7 +679,7 @@ a.app-bar-title:hover {
     color: var(--color-ivory);
   }
 
-  /* Hide the standalone tab bar row on desktop — it lives in app bar */
+  /* Hide the standalone tab bar row on desktop - it lives in app bar */
   .main-content > .tab-bar {
     display: none;
   }

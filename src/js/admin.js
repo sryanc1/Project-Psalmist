@@ -1,6 +1,7 @@
 import '../css/admin.css'
 import { requireAuth, signOutUser, onAuthChange } from './auth.js'
 import { getSongs, addSong, updateSong, deleteSong, rebuildIndex } from './songs.js'
+import { parseChorusFile, batchImport } from './import.js'
 
 // ── Auth guard ──
 requireAuth()
@@ -363,3 +364,102 @@ async function handleDelete(id) {
 
 // ── Init ──
 loadSongs()
+
+// ── Bulk import ──
+const importFile     = document.getElementById('import-file')
+const importFilename = document.getElementById('import-filename')
+const importPreview  = document.getElementById('import-preview')
+const importProgress = document.getElementById('import-progress')
+const progressFill   = document.getElementById('progress-fill')
+const progressLabel  = document.getElementById('progress-label')
+const importResult   = document.getElementById('import-result')
+const importBtn      = document.getElementById('import-btn')
+
+let parsedSongs = []
+
+importFile.addEventListener('change', (e) => {
+  const file = e.target.files[0]
+  if (!file) return
+
+  importFilename.textContent = file.name
+  importResult.className     = 'import-result'
+  importResult.textContent   = ''
+
+  const reader = new FileReader()
+  reader.onload = (ev) => {
+    parsedSongs = parseChorusFile(ev.target.result)
+    renderImportPreview(parsedSongs)
+    importBtn.disabled = parsedSongs.length === 0
+  }
+  reader.readAsText(file)
+})
+
+function renderImportPreview(songs) {
+  if (!songs.length) {
+    importPreview.innerHTML =
+      `<div class="preview-summary">No songs found in file.</div>`
+    importPreview.classList.add('visible')
+    return
+  }
+
+  importPreview.innerHTML = `
+    <div class="preview-summary">
+      Found ${songs.length} songs — review before importing:
+    </div>
+    <div class="preview-list">
+      ${songs.map(s => `
+        <div class="preview-row">
+          <span class="preview-num">${s.number}</span>
+          <span class="preview-title">${s.title}</span>
+          <span class="preview-stanzas">
+            ${s.lyrics.length} stanza${s.lyrics.length !== 1 ? 's' : ''}
+          </span>
+        </div>`).join('')}
+    </div>`
+  importPreview.classList.add('visible')
+}
+
+importBtn.addEventListener('click', async () => {
+  if (!parsedSongs.length) return
+
+  if (!confirm(
+    `Import ${parsedSongs.length} choruses into Firestore? ` +
+    `This cannot be undone.`)) return
+
+  importBtn.disabled         = true
+  importProgress.classList.add('visible')
+  importResult.className     = 'import-result'
+
+  try {
+    await batchImport(parsedSongs, (written, total) => {
+      const pct = Math.round((written / total) * 100)
+      progressFill.style.width  = `${pct}%`
+      progressLabel.textContent = `${pct}%`
+    })
+
+    progressFill.style.width  = '100%'
+    progressLabel.textContent = '100%'
+
+    importResult.textContent =
+      `Successfully imported ${parsedSongs.length} choruses ` +
+      `and rebuilt the index.`
+    importResult.classList.add('visible', 'success')
+
+    // Reload song list
+    await loadSongs()
+
+  } catch (err) {
+    console.error('Import failed:', err)
+    importResult.textContent =
+      `Import failed: ${err.message}. ` +
+      `Check the console for details.`
+    importResult.classList.add('visible', 'error')
+  } finally {
+    importBtn.disabled = false
+    importProgress.classList.remove('visible')
+    parsedSongs = []
+    importFile.value = ''
+    importFilename.textContent = 'No file chosen'
+    importPreview.classList.remove('visible')
+  }
+})

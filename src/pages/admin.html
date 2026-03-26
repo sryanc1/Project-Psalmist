@@ -42,7 +42,59 @@
       <div id="song-list" class="admin-song-list card">
         <div class="state-message">Loading songs...</div>
       </div>
+      
+      <!-- ── Import section ── -->
+      <div class="import-section mt-3">
+        <div class="list-header">
+          <h2 class="list-title">Bulk Import</h2>
+        </div>
 
+        <div class="card import-card">
+          <div class="import-body">
+
+            <div class="import-description">
+              <p>Import choruses from a formatted text file. Each song
+              should begin with its number on a new line. Verses are
+              separated by blank lines. Refrains are denoted by
+              <code>Chorus:</code> and alt refrains by
+              <code>Alt Chorus:</code>.</p>
+            </div>
+
+            <div class="import-controls">
+              <label class="file-label" for="import-file">
+                Choose text file
+                <input
+                  type="file"
+                  id="import-file"
+                  accept=".txt"
+                  class="file-input"
+                />
+              </label>
+              <span id="import-filename" class="import-filename">
+                No file chosen
+              </span>
+            </div>
+
+            <div id="import-preview" class="import-preview"></div>
+
+            <div id="import-progress" class="import-progress">
+              <div class="progress-bar">
+                <div id="progress-fill" class="progress-fill"></div>
+              </div>
+              <span id="progress-label" class="progress-label">0%</span>
+            </div>
+
+            <div id="import-result" class="import-result"></div>
+
+            <div class="import-actions">
+              <button id="import-btn" class="btn btn-primary" disabled>
+                Import Songs
+              </button>
+            </div>
+
+          </div>
+        </div>
+      </div>
     </main>
 
     <!-- ── Modal ── -->

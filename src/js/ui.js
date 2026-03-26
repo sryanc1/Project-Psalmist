@@ -178,50 +178,74 @@ function renderCarousel() {
   const localCenter =
     windowCenter - Math.max(0, windowCenter - WINDOW_HALF)
 
-  // First, update the track position with existing cards
-  requestAnimationFrame(() => {
-    positionTrack(localCenter)
-  })
+  const existingCards = carouselTrack.querySelectorAll('.song-card')
 
-  // Then update card content after animation has time to start (350ms is the animation duration)
-  setTimeout(() => {
-    const existing = carouselTrack.querySelectorAll('.song-card')
-    if (existing.length === windowSongs.length) {
-      windowSongs.forEach((song, i) => {
-        const card      = existing[i]
-        const isActive  = i === localCenter
-        const wasActive = card.classList.contains('active')
+  if (existingCards.length === windowSongs.length) {
+    // ── In-place update — preserve DOM for smooth animation ──
+    windowSongs.forEach((song, i) => {
+      const card     = existingCards[i]
+      const isActive = i === localCenter
 
-        // Only rebuild content if song changed
-        if (card.dataset.id !== song.id) {
-          const newCard = buildCard(song, isActive)
-          carouselTrack.replaceChild(newCard, card)
-        } else if (isActive !== wasActive) {
-          card.classList.toggle('active', isActive)
-          card.classList.toggle('side',   !isActive)
-          // Re-wire click on side cards
-          if (!isActive) {
-            card.onclick = () => {
-              const cards   = Array.from(carouselTrack.children)
-              const thisIdx = cards.indexOf(card)
-              const actIdx  = cards.findIndex(c =>
-                c.classList.contains('active'))
-              navigate(thisIdx < actIdx ? -1 : 1)
-            }
-          } else {
-            card.onclick = null
+      // Update active/side class
+      card.classList.toggle('active', isActive)
+      card.classList.toggle('side',   !isActive)
+
+      // Only rebuild card content if song changed
+      if (card.dataset.id !== song.id) {
+        const newCard = buildCard(song, isActive)
+        // Copy content but keep the same DOM node
+        card.dataset.id  = song.id
+        card.innerHTML   = newCard.innerHTML
+        // Re-wire share button
+        card.querySelector('.share-btn')
+          ?.addEventListener('click', (e) => {
+            e.stopPropagation()
+            const url =
+              `${window.location.origin}${import.meta.env.BASE_URL}?id=${song.id}`
+            navigator.clipboard.writeText(url).then(() => {
+              const btn = card.querySelector('.share-btn')
+              btn.textContent = 'Link copied!'
+              setTimeout(() => btn.textContent = 'Share song', 2000)
+            })
+          })
+        // Re-wire side card click
+        if (!isActive) {
+          card.onclick = () => {
+            const cards   = Array.from(carouselTrack.children)
+            const thisIdx = cards.indexOf(card)
+            const actIdx  = cards.findIndex(c =>
+              c.classList.contains('active'))
+            navigate(thisIdx < actIdx ? -1 : 1)
           }
+        } else {
+          card.onclick = null
         }
-      })
-    } else {
-      // First render — build from scratch
-      carouselTrack.innerHTML = ''
-      windowSongs.forEach((song, i) => {
-        carouselTrack.appendChild(buildCard(song, i === localCenter))
-      })
-    }
-  }, 100)  // Wait for animation to start before swapping DOM
+      } else {
+        // Same song — just update click handler
+        if (!isActive) {
+          card.onclick = () => {
+            const cards   = Array.from(carouselTrack.children)
+            const thisIdx = cards.indexOf(card)
+            const actIdx  = cards.findIndex(c =>
+              c.classList.contains('active'))
+            navigate(thisIdx < actIdx ? -1 : 1)
+          }
+        } else {
+          card.onclick = null
+        }
+      }
+    })
+  } else {
+    // ── First render only — build from scratch ──
+    carouselTrack.innerHTML = ''
+    windowSongs.forEach((song, i) => {
+      carouselTrack.appendChild(buildCard(song, i === localCenter))
+    })
+  }
 
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => positionTrack(localCenter))
+  })
   updateArrows()
 }
 

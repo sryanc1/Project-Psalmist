@@ -54,7 +54,7 @@ export function parseChorusFile(text) {
 
     // ── Alt Chorus ──
     if (/^Alt Chorus:/i.test(firstLine)) {
-      const remainder = firstLine.replace(/^Alt Chorus:\s*/i, '').trim()
+      const remainder = firstLine.trim()
       const lyricLines = [
         ...(remainder ? [remainder] : []),
         ...lines.slice(1)
@@ -69,7 +69,7 @@ export function parseChorusFile(text) {
 
     // ── Chorus ──
     if (/^Chorus:/i.test(firstLine)) {
-      const remainder = firstLine.replace(/^Chorus:\s*/i, '').trim()
+      const remainder = firstLine.trim()
       const lyricLines = [
         ...(remainder ? [remainder] : []),
         ...lines.slice(1)

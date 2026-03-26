@@ -178,46 +178,50 @@ function renderCarousel() {
   const localCenter =
     windowCenter - Math.max(0, windowCenter - WINDOW_HALF)
 
-  // If card count matches, swap content and classes in place
-  const existing = carouselTrack.querySelectorAll('.song-card')
-  if (existing.length === windowSongs.length) {
-    windowSongs.forEach((song, i) => {
-      const card      = existing[i]
-      const isActive  = i === localCenter
-      const wasActive = card.classList.contains('active')
-
-      // Only rebuild content if song changed
-      if (card.dataset.id !== song.id) {
-        const newCard = buildCard(song, isActive)
-        carouselTrack.replaceChild(newCard, card)
-      } else if (isActive !== wasActive) {
-        card.classList.toggle('active', isActive)
-        card.classList.toggle('side',   !isActive)
-        // Re-wire click on side cards
-        if (!isActive) {
-          card.onclick = () => {
-            const cards   = Array.from(carouselTrack.children)
-            const thisIdx = cards.indexOf(card)
-            const actIdx  = cards.findIndex(c =>
-              c.classList.contains('active'))
-            navigate(thisIdx < actIdx ? -1 : 1)
-          }
-        } else {
-          card.onclick = null
-        }
-      }
-    })
-  } else {
-    // First render — build from scratch
-    carouselTrack.innerHTML = ''
-    windowSongs.forEach((song, i) => {
-      carouselTrack.appendChild(buildCard(song, i === localCenter))
-    })
-  }
-
+  // First, update the track position with existing cards
   requestAnimationFrame(() => {
-    requestAnimationFrame(() => positionTrack(localCenter))
+    positionTrack(localCenter)
   })
+
+  // Then update card content after animation has time to start (350ms is the animation duration)
+  setTimeout(() => {
+    const existing = carouselTrack.querySelectorAll('.song-card')
+    if (existing.length === windowSongs.length) {
+      windowSongs.forEach((song, i) => {
+        const card      = existing[i]
+        const isActive  = i === localCenter
+        const wasActive = card.classList.contains('active')
+
+        // Only rebuild content if song changed
+        if (card.dataset.id !== song.id) {
+          const newCard = buildCard(song, isActive)
+          carouselTrack.replaceChild(newCard, card)
+        } else if (isActive !== wasActive) {
+          card.classList.toggle('active', isActive)
+          card.classList.toggle('side',   !isActive)
+          // Re-wire click on side cards
+          if (!isActive) {
+            card.onclick = () => {
+              const cards   = Array.from(carouselTrack.children)
+              const thisIdx = cards.indexOf(card)
+              const actIdx  = cards.findIndex(c =>
+                c.classList.contains('active'))
+              navigate(thisIdx < actIdx ? -1 : 1)
+            }
+          } else {
+            card.onclick = null
+          }
+        }
+      })
+    } else {
+      // First render — build from scratch
+      carouselTrack.innerHTML = ''
+      windowSongs.forEach((song, i) => {
+        carouselTrack.appendChild(buildCard(song, i === localCenter))
+      })
+    }
+  }, 100)  // Wait for animation to start before swapping DOM
+
   updateArrows()
 }
 

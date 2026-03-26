@@ -163,11 +163,20 @@ async function fetchWindow(centerIdx) {
   })
 }
 
-// - Jump to index -
+// - Jump — snap directly, no animation -
 async function jumpToIndex(idx) {
   windowCenter = Math.max(0, Math.min(idx, fullIndex.length - 1))
   windowSongs  = await fetchWindow(windowCenter)
+
+  setTrackTransition(false)
   renderCarousel()
+
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => {
+      setTrackTransition(true)
+    })
+  })
+
   renderNavDots()
   updateDrawerHighlight()
   updateURL()
@@ -178,7 +187,7 @@ function renderCarousel() {
   const localCenter =
     windowCenter - Math.max(0, windowCenter - WINDOW_HALF)
 
-    // ── DEBUG ──
+    // - DEBUG -
   const existingCards = carouselTrack.querySelectorAll('.song-card')
   console.log('=== renderCarousel ===')
   console.log('windowCenter:', windowCenter)
@@ -189,10 +198,10 @@ function renderCarousel() {
   windowSongs.forEach((s, i) => {
     console.log(`  slot ${i}: ${s.number} ${s.title} ${i === localCenter ? '← ACTIVE' : ''}`)
   })
-  // ── END DEBUG ──
+  // - END DEBUG -
 
   if (existingCards.length === windowSongs.length) {
-    // ── In-place update — preserve DOM for smooth animation ──
+    // - In-place update — preserve DOM for smooth animation -
     windowSongs.forEach((song, i) => {
       const card     = existingCards[i]
       const isActive = i === localCenter
@@ -247,7 +256,7 @@ function renderCarousel() {
       }
     })
   } else {
-    // ── First render only — build from scratch ──
+    // - First render only — build from scratch -
     carouselTrack.innerHTML = ''
     windowSongs.forEach((song, i) => {
       carouselTrack.appendChild(buildCard(song, i === localCenter))
@@ -276,7 +285,7 @@ function positionTrack(localCenter) {
   }
   offset = offset - areaWidth / 2 + cardWidth / 2
 
-  // ── DEBUG ──
+  // - DEBUG -
   const currentTransform = carouselTrack.style.transform
   const computedStyle    = window.getComputedStyle(carouselTrack)
   console.log('=== positionTrack ===')
@@ -289,7 +298,7 @@ function positionTrack(localCenter) {
   console.log('current inline transform:', currentTransform)
   console.log('computed transition:', computedStyle.transition)
   console.log('computed transform:', computedStyle.transform)
-  // ── END DEBUG ──
+  // - END DEBUG -
 
   carouselTrack.style.transform = `translateX(${-offset}px)`
 
@@ -376,14 +385,61 @@ function renderLyrics(song) {
   }).join('')
 }
 
-// - Navigate -
+// - Navigate — two phase: animate then snap -
 async function navigate(direction) {
   if (isAnimating) return
   const newCenter = windowCenter + direction
   if (newCenter < 0 || newCenter >= fullIndex.length) return
+
   isAnimating = true
-  await jumpToIndex(newCenter)
-  setTimeout(() => isAnimating = false, 350)
+
+  // Phase 1 — animate one card-width in direction of travel
+  const cards     = carouselTrack.querySelectorAll('.song-card')
+  const cardWidth = cards[0]?.offsetWidth || 300
+  const gap       = 16
+  const currentX  = getTranslateX(carouselTrack)
+  const targetX   = currentX - direction * (cardWidth + gap)
+
+  setTrackTransition(true)
+  carouselTrack.style.transform = `translateX(${targetX}px)`
+
+  // Wait for animation to complete
+  await delay(360)
+
+  // Phase 2 — update window content with transition disabled
+  windowCenter = newCenter
+  windowSongs  = await fetchWindow(windowCenter)
+
+  setTrackTransition(false)
+  renderCarousel()
+
+  // Phase 3 — re-enable transition on next paint
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => {
+      setTrackTransition(true)
+      isAnimating = false
+    })
+  })
+
+  updateDrawerHighlight()
+  updateURL()
+  renderNavDots()
+}
+
+// - Helper -
+function getTranslateX(el) {
+  const match = el.style.transform.match(/translateX\(([^)]+)px\)/)
+  return match ? parseFloat(match[1]) : 0
+}
+
+function delay(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms))
+}
+
+function setTrackTransition(enabled) {
+  carouselTrack.style.transition = enabled
+    ? 'transform 0.35s cubic-bezier(0.4, 0, 0.2, 1)'
+    : 'none'
 }
 
 // - Arrows -

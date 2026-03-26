@@ -158,10 +158,10 @@ a.app-bar-title:hover {
 .carousel-track {
   display: flex;
   gap: var(--card-gap);
-  align-items: center;
-  /* padding: 1rem var(--card-gap); */
-  transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+  align-items: stretch;
+  padding: 1rem 0rem var(--card-gap);
   will-change: transform;
+  /* transition removed — controlled by JS */
 }
 
 /* - Song card - */

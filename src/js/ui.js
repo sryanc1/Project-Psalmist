@@ -163,19 +163,16 @@ async function fetchWindow(centerIdx) {
   })
 }
 
-// - Jump — snap directly, no animation -
+// - Jump - snap directly, no animation -
 async function jumpToIndex(idx) {
   windowCenter = Math.max(0, Math.min(idx, fullIndex.length - 1))
   windowSongs  = await fetchWindow(windowCenter)
 
   setTrackTransition(false)
+  void carouselTrack.offsetWidth
   renderCarousel()
-
-  requestAnimationFrame(() => {
-    requestAnimationFrame(() => {
-      setTrackTransition(true)
-    })
-  })
+  void carouselTrack.offsetWidth
+  setTrackTransition(true)
 
   renderNavDots()
   updateDrawerHighlight()
@@ -385,12 +382,11 @@ function renderLyrics(song) {
   }).join('')
 }
 
-// - Navigate — two phase: animate then snap -
+// - Navigate - two phase: animate then snap -
 async function navigate(direction) {
   if (isAnimating) return
   const newCenter = windowCenter + direction
   if (newCenter < 0 || newCenter >= fullIndex.length) return
-
   isAnimating = true
 
   // Phase 1 — animate one card-width in direction of travel
@@ -403,24 +399,30 @@ async function navigate(direction) {
   setTrackTransition(true)
   carouselTrack.style.transform = `translateX(${targetX}px)`
 
-  // Wait for animation to complete
-  await delay(360)
+  // Wait for transition using transitionend — more reliable than delay()
+  await new Promise(resolve => {
+    const onEnd = (e) => {
+      if (e.propertyName !== 'transform') return
+      carouselTrack.removeEventListener('transitionend', onEnd)
+      resolve()
+    }
+    carouselTrack.addEventListener('transitionend', onEnd)
+    // Safety fallback in case transitionend doesn't fire
+    setTimeout(resolve, 400)
+  })
 
-  // Phase 2 — update window content with transition disabled
+  // Phase 2 — fetch new window content
   windowCenter = newCenter
   windowSongs  = await fetchWindow(windowCenter)
 
+  // Phase 3 — disable transition, force reflow, snap, force reflow, re-enable
   setTrackTransition(false)
-  renderCarousel()
+  void carouselTrack.offsetWidth   // flush pending styles — KEY FIX
+  renderCarousel()                  // snap to correct position
+  void carouselTrack.offsetWidth   // flush again before re-enabling
+  setTrackTransition(true)
 
-  // Phase 3 — re-enable transition on next paint
-  requestAnimationFrame(() => {
-    requestAnimationFrame(() => {
-      setTrackTransition(true)
-      isAnimating = false
-    })
-  })
-
+  isAnimating = false
   updateDrawerHighlight()
   updateURL()
   renderNavDots()

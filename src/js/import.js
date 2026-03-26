@@ -139,7 +139,7 @@ async function deduplicateSongs(songs, type) {
   const existing = await getSongIndex(type)
 
   const existingNumbers = new Set(existing.map(s => s.number))
-  const existingTitles  = new Set(
+  const existingTitles = new Set(
     existing.map(s => s.title.toLowerCase().trim())
   )
 

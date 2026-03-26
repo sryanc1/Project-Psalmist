@@ -204,16 +204,16 @@ function fillCard(card, song) {
 // - Populate ±2 window -
 async function populateWindow(center) {
   const start = Math.max(0, center - 2)
-  const end   = Math.min(fullIndex.length - 1, center + 2)
+  const end = Math.min(fullIndex.length - 1, center + 2)
   const cards = carouselTrack.querySelectorAll('.song-card')
 
   const fetches = []
   for (let i = start; i <= end; i++) {
-    const card       = cards[i]
+    const card = cards[i]
     if (!card) continue
-    const entry      = fullIndex[i]
-    const id         = entry.id
-    const updatedAt  = entry.updatedAt || 0
+    const entry = fullIndex[i]
+    const id = entry.id
+    const updatedAt = entry.updatedAt || 0
 
     // Always re-populate if stale even if card was previously filled
     const memHit = memoryCache.get(id)
@@ -383,13 +383,13 @@ function renderNavDots() {
 
   if (total <= 7) {
     fullIndex.forEach((_, i) => {
-      const dot    = document.createElement('div')
+      const dot = document.createElement('div')
       dot.className = `nav-dot ${i === windowCenter ? 'active' : ''}`
       dot.addEventListener('click', () => jumpToIndex(i))
       navDotsEl.appendChild(dot)
     })
   } else {
-    const label    = document.createElement('span')
+    const label = document.createElement('span')
     label.className = 'nav-position'
     label.textContent = `${windowCenter + 1} of ${total}`
     navDotsEl.appendChild(label)

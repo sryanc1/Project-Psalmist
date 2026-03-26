@@ -47,19 +47,19 @@ document.getElementById('rebuild-index-btn')
   })
 
 // - State -
-let allSongs    = []
-let editingId   = null  // null = adding, string = editing
-let stanzas     = []    // working stanza list in modal
-let verseCount  = 0
+let allSongs = []
+let editingId = null  // null = adding, string = editing
+let stanzas = []    // working stanza list in modal
+let verseCount = 0
 
 // - Elements -
-const songListEl     = document.getElementById('song-list')
-const modalOverlay   = document.getElementById('modal-overlay')
-const modalTitle     = document.getElementById('modal-title')
-const modalSaveBtn   = document.getElementById('modal-save')
-const stanzaListEl   = document.getElementById('stanza-list')
-const formError      = document.getElementById('form-error')
-const typeBtns       = document.querySelectorAll('.type-btn')
+const songListEl = document.getElementById('song-list')
+const modalOverlay = document.getElementById('modal-overlay')
+const modalTitle = document.getElementById('modal-title')
+const modalSaveBtn = document.getElementById('modal-save')
+const stanzaListEl = document.getElementById('stanza-list')
+const formError = document.getElementById('form-error')
+const typeBtns = document.querySelectorAll('.type-btn')
 
 // - Load songs -
 async function loadSongs() {
@@ -118,18 +118,18 @@ document.getElementById('add-song-btn')
   .addEventListener('click', () => openModal())
 
 function openModal(song = null) {
-  editingId  = song ? song.id : null
-  stanzas    = song ? [...song.lyrics] : []
+  editingId = song ? song.id : null
+  stanzas = song ? [...song.lyrics] : []
   verseCount = stanzas.filter(s => s.type === 'verse').length
 
   modalTitle.textContent = song ? 'Edit Song' : 'Add New Song'
 
   // Populate meta fields
   document.getElementById('field-number').value = song?.number || ''
-  document.getElementById('field-title').value  = song?.title  || ''
+  document.getElementById('field-title').value = song?.title  || ''
   document.getElementById('field-author').value = song?.author || ''
-  document.getElementById('field-key').value    = song?.key    || ''
-  document.getElementById('field-tags').value   =
+  document.getElementById('field-key').value = song?.key    || ''
+  document.getElementById('field-tags').value =
   song?.tags ? song.tags.join(', ') : ''
 
   // Set type toggle
@@ -153,8 +153,8 @@ function openEditModal(id) {
 // - Modal close -
 function closeModal() {
   modalOverlay.style.display = 'none'
-  editingId  = null
-  stanzas    = []
+  editingId = null
+  stanzas = []
   verseCount = 0
 }
 
@@ -260,12 +260,12 @@ function recalculateVerseLabels() {
 // - Save -
 modalSaveBtn.addEventListener('click', async () => {
   const number = parseInt(document.getElementById('field-number').value) || 0
-  const title  = document.getElementById('field-title').value.trim()
+  const title = document.getElementById('field-title').value.trim()
   const author = document.getElementById('field-author').value.trim()
-  const key    = document.getElementById('field-key').value
-  const tags   = document.getElementById('field-tags').value
+  const key = document.getElementById('field-key').value
+  const tags = document.getElementById('field-tags').value
     .split(',').map(t => t.trim()).filter(Boolean)
-  const type   = document.querySelector('.type-btn.active').dataset.type
+  const type = document.querySelector('.type-btn.active').dataset.type
 
   // - Validation -
   if (!title || !number || stanzas.length === 0) {
@@ -328,7 +328,7 @@ modalSaveBtn.addEventListener('click', async () => {
       closeModal()
       renderSongList(allSongs, editingId)
     } else {
-      const newId  = await addSong(songData)
+      const newId = await addSong(songData)
       const newSong = { id: newId, ...songData }
       allSongs.push(newSong)
       allSongs.sort((a, b) => {
@@ -366,14 +366,14 @@ async function handleDelete(id) {
 loadSongs()
 
 // - Bulk import -
-const importFile     = document.getElementById('import-file')
+const importFile = document.getElementById('import-file')
 const importFilename = document.getElementById('import-filename')
-const importPreview  = document.getElementById('import-preview')
+const importPreview = document.getElementById('import-preview')
 const importProgress = document.getElementById('import-progress')
-const progressFill   = document.getElementById('progress-fill')
-const progressLabel  = document.getElementById('progress-label')
-const importResult   = document.getElementById('import-result')
-const importBtn      = document.getElementById('import-btn')
+const progressFill = document.getElementById('progress-fill')
+const progressLabel = document.getElementById('progress-label')
+const importResult = document.getElementById('import-result')
+const importBtn = document.getElementById('import-btn')
 
 let parsedSongs = []
 
@@ -382,8 +382,8 @@ importFile.addEventListener('change', (e) => {
   if (!file) return
 
   importFilename.textContent = file.name
-  importResult.className     = 'import-result'
-  importResult.textContent   = ''
+  importResult.className = 'import-result'
+  importResult.textContent = ''
 
   const reader = new FileReader()
   reader.onload = (ev) => {
@@ -434,11 +434,11 @@ importBtn.addEventListener('click', async () => {
     const { imported, skipped, skippedSongs } =
       await batchImport(parsedSongs, 'chorus', (written, total) => {
         const pct = Math.round((written / total) * 100)
-        progressFill.style.width  = `${pct}%`
+        progressFill.style.width = `${pct}%`
         progressLabel.textContent = `${pct}%`
       })
 
-    progressFill.style.width  = '100%'
+    progressFill.style.width = '100%'
     progressLabel.textContent = '100%'
 
     // Build result message
@@ -452,7 +452,7 @@ importBtn.addEventListener('click', async () => {
     }
 
     importResult.style.whiteSpace = 'pre-wrap'
-    importResult.textContent      = message
+    importResult.textContent = message
     importResult.classList.add('visible', 'success')
 
     await loadSongs()
@@ -465,8 +465,8 @@ importBtn.addEventListener('click', async () => {
   } finally {
     importBtn.disabled = false
     importProgress.classList.remove('visible')
-    parsedSongs            = []
-    importFile.value       = ''
+    parsedSongs = []
+    importFile.value = ''
     importFilename.textContent = 'No file chosen'
     importPreview.classList.remove('visible')
   }

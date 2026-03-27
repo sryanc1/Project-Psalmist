@@ -8,7 +8,6 @@ async function openDB() {
   if (db) return db
   return new Promise((resolve, reject) => {
     const req = indexedDB.open(DB_NAME, DB_VERSION)
-    console.log('Opening IndexedDB...')
     req.onupgradeneeded = (e) => {
       const database = e.target.result
       if (!database.objectStoreNames.contains(STORE_SONGS)) {
@@ -44,7 +43,7 @@ export async function idbGet(id, indexUpdatedAt = 0) {
   } catch { return null }
 }
 
-//  - Store one song  - stamp with cache time  -
+//  - Store one song - stamp with cache time  -
 export async function idbSet(song) {
   try {
     const database = await openDB()

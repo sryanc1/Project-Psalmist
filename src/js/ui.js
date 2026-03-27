@@ -62,17 +62,18 @@ let isAnimating = false
 const memoryCache = new Map()
 
 async function getCachedSong(id, indexUpdatedAt = 0) {
-  // Layer 1 — memory (check version)
+  // Layer 1 — memory
   if (memoryCache.has(id)) {
     const cached = memoryCache.get(id)
-    if (!indexUpdatedAt || cached._cachedAt >= indexUpdatedAt) {
+    const cachedAt = cached._cachedAt || 0
+    if (!indexUpdatedAt || cachedAt >= indexUpdatedAt) {
       return cached
     }
-    // Memory copy is stale — evict it
+    // Stale — evict from memory
     memoryCache.delete(id)
   }
 
-  // Layer 2 — IndexedDB (with staleness check)
+  // Layer 2 — IndexedDB
   const cached = await idbGet(id, indexUpdatedAt)
   if (cached) {
     memoryCache.set(id, cached)
@@ -83,10 +84,13 @@ async function getCachedSong(id, indexUpdatedAt = 0) {
   try {
     const song = await getSong(id)
     if (song) {
-      memoryCache.set(id, song)
-      idbSet(song) // fire and forget
+      // Stamp _cachedAt on BOTH memory and IndexedDB copies
+      const stamped = { ...song, _cachedAt: Date.now() }
+      memoryCache.set(id, stamped)
+      idbSet(stamped)
+      return stamped
     }
-    return song
+    return null
   } catch { return null }
 }
 
@@ -155,7 +159,7 @@ function updateCardClasses(center) {
 
 // - Fill a card shell with song data -
 function fillCard(card, song) {
-  if (!song || card.dataset.populated === 'true') return
+  if (!song) return
   card.dataset.populated = 'true'
   card.classList.remove('empty')
 
@@ -217,9 +221,17 @@ async function populateWindow(center) {
 
     // Always re-populate if stale even if card was previously filled
     const memHit = memoryCache.get(id)
+    const cachedAt = memHit?._cachedAt || 0
     const isStale = memHit && updatedAt && memHit._cachedAt < updatedAt
 
     if (card.dataset.populated === 'true' && !isStale) continue
+
+    // Reset populated flag if stale so fillCard reruns
+    if (isStale) {
+      console.log(`Stale card ${id} — cachedAt: ${cachedAt}, indexUpdatedAt: ${updatedAt}`)
+      card.dataset.populated = 'false'
+      memoryCache.delete(id)
+    }
 
     fetches.push(
       getCachedSong(id, updatedAt).then(song => {

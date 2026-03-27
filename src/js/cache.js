@@ -8,6 +8,7 @@ async function openDB() {
   if (db) return db
   return new Promise((resolve, reject) => {
     const req = indexedDB.open(DB_NAME, DB_VERSION)
+    console.log('Opening IndexedDB...')
     req.onupgradeneeded = (e) => {
       const database = e.target.result
       if (!database.objectStoreNames.contains(STORE_SONGS)) {
@@ -19,7 +20,7 @@ async function openDB() {
   })
 }
 
-// ── Get one song — returns null if stale or missing ──
+// - Get one song - returns null if stale or missing  -
 export async function idbGet(id, indexUpdatedAt = 0) {
   try {
     const database = await openDB()
@@ -34,7 +35,7 @@ export async function idbGet(id, indexUpdatedAt = 0) {
 
     // Invalidate if index has been updated since we cached this song
     if (indexUpdatedAt && song._cachedAt < indexUpdatedAt) {
-      console.log(`Cache stale for ${id} — re-fetching`)
+      console.log(`Cache stale for ${id}  - re-fetching`)
       await idbDelete(id)
       return null
     }
@@ -43,7 +44,7 @@ export async function idbGet(id, indexUpdatedAt = 0) {
   } catch { return null }
 }
 
-// ── Store one song — stamp with cache time ──
+//  - Store one song  - stamp with cache time  -
 export async function idbSet(song) {
   try {
     const database = await openDB()
@@ -59,7 +60,7 @@ export async function idbSet(song) {
   } catch { return null }
 }
 
-// ── Delete one song ──
+//  - Delete one song  -
 export async function idbDelete(id) {
   try {
     const database = await openDB()
@@ -72,7 +73,7 @@ export async function idbDelete(id) {
   } catch { return null }
 }
 
-// ── Clear all songs ──
+//  - Clear all songs  -
 export async function idbClear() {
   try {
     const database = await openDB()

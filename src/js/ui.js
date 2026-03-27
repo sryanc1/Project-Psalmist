@@ -62,37 +62,37 @@ let isAnimating = false
 const memoryCache = new Map()
 
 async function getCachedSong(id, indexUpdatedAt = 0) {
-  console.log(`[cache] getSong ${id} | indexUpdatedAt: ${indexUpdatedAt}`)
+  //console.log(`[cache] getSong ${id} | indexUpdatedAt: ${indexUpdatedAt}`)
 
   // Layer 1 - memory
   if (memoryCache.has(id)) {
     const cached   = memoryCache.get(id)
     const cachedAt = cached._cachedAt || 0
-    console.log(`[cache] memory hit | _cachedAt: ${cachedAt} | stale: ${cachedAt < indexUpdatedAt}`)
+    //console.log(`[cache] memory hit | _cachedAt: ${cachedAt} | stale: ${cachedAt < indexUpdatedAt}`)
     if (!indexUpdatedAt || cachedAt >= indexUpdatedAt) {
       return cached
     }
-    console.log(`[cache] evicting memory copy`)
+    //console.log(`[cache] evicting memory copy`)
     memoryCache.delete(id)
   } else {
-    console.log(`[cache] memory miss`)
+    //console.log(`[cache] memory miss`)
   }
 
   // Layer 2 - IndexedDB
   const cached = await idbGet(id, indexUpdatedAt)
   if (cached) {
-    console.log(`[cache] idb hit | _cachedAt: ${cached._cachedAt}`)
+    //console.log(`[cache] idb hit | _cachedAt: ${cached._cachedAt}`)
     memoryCache.set(id, cached)
     return cached
   }
-  console.log(`[cache] idb miss - fetching Firestore`)
+  //console.log(`[cache] idb miss - fetching Firestore`)
 
   // Layer 3 - Firestore
   try {
     const song = await getSong(id)
     if (song) {
       const stamped = { ...song, _cachedAt: Date.now() }
-      console.log(`[cache] Firestore fetched | stamping _cachedAt: ${stamped._cachedAt}`)
+      //console.log(`[cache] Firestore fetched | stamping _cachedAt: ${stamped._cachedAt}`)
       memoryCache.set(id, stamped)
       idbSet(stamped)
       return stamped
@@ -221,7 +221,7 @@ async function populateWindow(center) {
   const end   = Math.min(fullIndex.length - 1, center + 2)
   const cards = carouselTrack.querySelectorAll('.song-card')
 
-  console.log(`[populate] center: ${center} | range: ${start}-${end}`)
+  //console.log(`[populate] center: ${center} | range: ${start}-${end}`)
 
   const fetches = []
   for (let i = start; i <= end; i++) {
@@ -234,15 +234,15 @@ async function populateWindow(center) {
     const cachedAt  = memHit?._cachedAt || 0
     const isStale   = updatedAt > 0 && cachedAt < updatedAt
 
-    console.log(`[populate] slot ${i} | id: ${id} | populated: ${card.dataset.populated} | updatedAt: ${updatedAt} | cachedAt: ${cachedAt} | isStale: ${isStale}`)
+    //console.log(`[populate] slot ${i} | id: ${id} | populated: ${card.dataset.populated} | updatedAt: ${updatedAt} | cachedAt: ${cachedAt} | isStale: ${isStale}`)
 
     if (card.dataset.populated === 'true' && !isStale) {
-      console.log(`[populate] slot ${i} - skipping (fresh)`)
+      //console.log(`[populate] slot ${i} - skipping (fresh)`)
       continue
     }
 
     if (isStale) {
-      console.log(`[populate] slot ${i} - STALE, evicting and re-fetching`)
+      //console.log(`[populate] slot ${i} - STALE, evicting and re-fetching`)
       card.dataset.populated = 'false'
       memoryCache.delete(id)
     }
@@ -250,7 +250,7 @@ async function populateWindow(center) {
     fetches.push(
       getCachedSong(id, updatedAt).then(song => {
         if (song) {
-          console.log(`[populate] slot ${i} - filling card with: ${song.title}`)
+          //console.log(`[populate] slot ${i} - filling card with: ${song.title}`)
           fillCard(card, song)
         }
       })

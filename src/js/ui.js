@@ -264,19 +264,47 @@ function renderLyrics(song) {
   if (!song.lyrics || song.lyrics.length === 0) {
     return `<p class="state-message">No lyrics available.</p>`
   }
-  return song.lyrics.map(stanza => {
-    const isRefrain =
-      stanza.type === 'refrain' || stanza.type === 'refrain-alt'
-    const lines = (stanza.lines || [])
-      .map(l => `<span class="lyric-line">${l}</span>`).join('')
-    return `
-      <div class="stanza ${isRefrain ? 'stanza-refrain' : ''}">
-        ${stanza.label
-          ? `<div class="stanza-label">${stanza.label}</div>`
-          : ''}
-        <div class="stanza-lines">${lines}</div>
-      </div>`
-  }).join('')
+
+  const refrain = song.lyrics.find(s => s.type === 'refrain')
+  const refrainAlt = song.lyrics.find(s => s.type === 'refrain-alt')
+  const verses = song.lyrics.filter(s => s.type === 'verse')
+
+  // No refrain — render positionally as stored
+  if (!refrain) {
+    return song.lyrics.map(s => renderStanza(s)).join('')
+  }
+
+  // Interleave refrain after each verse
+  const output = []
+  verses.forEach((verse, i) => {
+    const isLast = i === verses.length - 1
+    output.push(renderStanza(verse))
+
+    // After last verse - skip original refrain if alt refrain exists
+    if (isLast && refrainAlt) return
+    output.push(renderStanza(refrain))
+  })
+
+  // Alt refrain always goes at the end
+  if (refrainAlt) {
+    output.push(renderStanza(refrainAlt))
+  }
+
+  return output.join('')
+}
+
+function renderStanza(stanza) {
+  const isRefrain =
+    stanza.type === 'refrain' || stanza.type === 'refrain-alt'
+  const lines = (stanza.lines || [])
+    .map(l => `<span class="lyric-line">${l}</span>`).join('')
+  return `
+    <div class="stanza ${isRefrain ? 'stanza-refrain' : ''}">
+      ${stanza.label
+        ? `<div class="stanza-label">${stanza.label}</div>`
+        : ''}
+      <div class="stanza-lines">${lines}</div>
+    </div>`
 }
 
 // - Navigate -

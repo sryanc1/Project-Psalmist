@@ -139,7 +139,7 @@ async function deduplicateSongs(songs, type) {
   const existing = await getSongIndex(type)
 
   const existingNumbers = new Set(existing.map(s => s.number))
-  const existingTitles = new Set(
+  const existingTitles  = new Set(
     existing.map(s => s.title.toLowerCase().trim())
   )
 
@@ -163,14 +163,18 @@ async function deduplicateSongs(songs, type) {
   return { unique, skipped }
 }
 
-// - Batch write songs to Firestore -
+// ── Batch write songs to Firestore ──
 export async function batchImport(songs, type = 'chorus', onProgress) {
-  const total = songs.length
+  const { unique, skipped } = await deduplicateSongs(songs, type)
+
+  if (unique.length === 0) {
+    return { imported: 0, skipped: skipped.length, skippedSongs: skipped }
+  }
+
   let written = 0
 
-  // Split into chunks of BATCH_SIZE
-  for (let i = 0; i < songs.length; i += BATCH_SIZE) {
-    const chunk = songs.slice(i, i + BATCH_SIZE)
+  for (let i = 0; i < unique.length; i += BATCH_SIZE) {
+    const chunk = unique.slice(i, i + BATCH_SIZE)
     const batch = writeBatch(db)
 
     chunk.forEach(song => {
@@ -184,11 +188,14 @@ export async function batchImport(songs, type = 'chorus', onProgress) {
 
     await batch.commit()
     written += chunk.length
-    if (onProgress && typeof onProgress === 'function') {
-      onProgress(written, unique.length)
-    }
+    if (onProgress) onProgress(written, unique.length)
   }
 
-  // Rebuild index after all writes
-  await rebuildIndex('chorus')
+  await rebuildIndex(type)
+
+  return {
+    imported: unique.length,
+    skipped: skipped.length,
+    skippedSongs: skipped
+  }
 }

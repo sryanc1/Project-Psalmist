@@ -1,5 +1,5 @@
 import { db } from './firebase.js'
-import { rebuildIndex } from './songs.js'
+import { rebuildIndex, getSongIndex} from './songs.js'
 import {
   collection,
   writeBatch,

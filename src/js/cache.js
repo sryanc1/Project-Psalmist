@@ -1,5 +1,5 @@
 const DB_NAME = 'psalmist-cache'
-const DB_VERSION = 1
+const DB_VERSION = 2
 const STORE_SONGS = 'songs'
 
 let db = null
@@ -10,6 +10,15 @@ async function openDB() {
     const req = indexedDB.open(DB_NAME, DB_VERSION)
     req.onupgradeneeded = (e) => {
       const database = e.target.result
+      const oldVersion = e.oldVersion
+      
+      // Clear old store if upgrading from v1 (no _cachedAt stamps)
+      if (oldVersion < 2) {
+        if (database.objectStoreNames.contains(STORE_SONGS)) {
+          database.deleteObjectStore(STORE_SONGS)
+        }
+      }
+
       if (!database.objectStoreNames.contains(STORE_SONGS)) {
         database.createObjectStore(STORE_SONGS, { keyPath: 'id' })
       }
@@ -32,8 +41,11 @@ export async function idbGet(id, indexUpdatedAt = 0) {
 
     if (!song) return null
 
+    // Treat missing _cachedAt as 0 - always stale
+    const cachedAt = song._cachedAt || 0    
+
     // Invalidate if index has been updated since we cached this song
-    if (indexUpdatedAt && song._cachedAt < indexUpdatedAt) {
+    if (indexUpdatedAt && cachedAt < indexUpdatedAt) {
       console.log(`Cache stale for ${id}  - re-fetching`)
       await idbDelete(id)
       return null

@@ -426,6 +426,7 @@ importBtn.addEventListener('click', async () => {
     `Import ${parsedSongs.length} choruses into Firestore? ` +
     `Duplicates will be skipped automatically.`)) return
 
+  console.log('parsed songs sample:', parsedSongs.slice(0, 3))
   importBtn.disabled = true
   importProgress.classList.add('visible')
   importResult.className = 'import-result'

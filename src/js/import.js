@@ -139,7 +139,7 @@ async function deduplicateSongs(songs, type) {
   const existing = await getSongIndex(type)
 
   const existingNumbers = new Set(existing.map(s => s.number))
-  const existingTitles  = new Set(
+  const existingTitles = new Set(
     existing.map(s => s.title.toLowerCase().trim())
   )
 
@@ -163,7 +163,7 @@ async function deduplicateSongs(songs, type) {
   return { unique, skipped }
 }
 
-// ── Batch write songs to Firestore ──
+// - Batch write songs to Firestore -
 export async function batchImport(songs, type = 'chorus', onProgress) {
   const { unique, skipped } = await deduplicateSongs(songs, type)
 

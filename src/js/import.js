@@ -164,7 +164,7 @@ async function deduplicateSongs(songs, type) {
 }
 
 // - Batch write songs to Firestore -
-export async function batchImport(songs, onProgress) {
+export async function batchImport(songs, type = 'chorus', onProgress) {
   const total = songs.length
   let written = 0
 
@@ -184,7 +184,9 @@ export async function batchImport(songs, onProgress) {
 
     await batch.commit()
     written += chunk.length
-    if (onProgress) onProgress(written, total)
+    if (onProgress && typeof onProgress === 'function') {
+      onProgress(written, unique.length)
+    }
   }
 
   // Rebuild index after all writes

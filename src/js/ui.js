@@ -64,7 +64,7 @@ const memoryCache = new Map()
 async function getCachedSong(id, indexUpdatedAt = 0) {
   console.log(`[cache] getSong ${id} | indexUpdatedAt: ${indexUpdatedAt}`)
 
-  // Layer 1 — memory
+  // Layer 1 - memory
   if (memoryCache.has(id)) {
     const cached   = memoryCache.get(id)
     const cachedAt = cached._cachedAt || 0
@@ -78,16 +78,16 @@ async function getCachedSong(id, indexUpdatedAt = 0) {
     console.log(`[cache] memory miss`)
   }
 
-  // Layer 2 — IndexedDB
+  // Layer 2 - IndexedDB
   const cached = await idbGet(id, indexUpdatedAt)
   if (cached) {
     console.log(`[cache] idb hit | _cachedAt: ${cached._cachedAt}`)
     memoryCache.set(id, cached)
     return cached
   }
-  console.log(`[cache] idb miss — fetching Firestore`)
+  console.log(`[cache] idb miss - fetching Firestore`)
 
-  // Layer 3 — Firestore
+  // Layer 3 - Firestore
   try {
     const song = await getSong(id)
     if (song) {
@@ -237,12 +237,12 @@ async function populateWindow(center) {
     console.log(`[populate] slot ${i} | id: ${id} | populated: ${card.dataset.populated} | updatedAt: ${updatedAt} | cachedAt: ${cachedAt} | isStale: ${isStale}`)
 
     if (card.dataset.populated === 'true' && !isStale) {
-      console.log(`[populate] slot ${i} — skipping (fresh)`)
+      console.log(`[populate] slot ${i} - skipping (fresh)`)
       continue
     }
 
     if (isStale) {
-      console.log(`[populate] slot ${i} — STALE, evicting and re-fetching`)
+      console.log(`[populate] slot ${i} - STALE, evicting and re-fetching`)
       card.dataset.populated = 'false'
       memoryCache.delete(id)
     }
@@ -250,7 +250,7 @@ async function populateWindow(center) {
     fetches.push(
       getCachedSong(id, updatedAt).then(song => {
         if (song) {
-          console.log(`[populate] slot ${i} — filling card with: ${song.title}`)
+          console.log(`[populate] slot ${i} - filling card with: ${song.title}`)
           fillCard(card, song)
         }
       })

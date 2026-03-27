@@ -446,7 +446,7 @@ importBtn.addEventListener('click', async () => {
     if (skipped > 0) {
       message += ` ${skipped} duplicate${skipped !== 1 ? 's' : ''} skipped:`
       const skipList = skippedSongs
-        .map(s => `  #${s.number} "${s.title}" — ${s.reason}`)
+        .map(s => `  #${s.number} "${s.title}" - ${s.reason}`)
         .join('\n')
       message += `\n${skipList}`
     }

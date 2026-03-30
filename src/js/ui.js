@@ -114,10 +114,10 @@ let centerOffset = 0
 function updateMetrics() {
   const first = carouselTrack.querySelector('.song-card')
   if (first) {
-    // Use precise fractional width — not rounded offsetWidth
+    // Use precise fractional width - not rounded offsetWidth
     cardWidth = first.getBoundingClientRect().width
   }
-  // Read gap from CSS variable — single source of truth
+  // Read gap from CSS variable - single source of truth
   cardGap = parseFloat(
     getComputedStyle(document.documentElement)
       .getPropertyValue('--card-gap')
@@ -127,7 +127,7 @@ function updateMetrics() {
 }
 
 function getTransformForIndex(idx) {
-  // Use precise math — no rounding
+  // Use precise math - no rounding
   return -(idx * (cardWidth + cardGap)) + centerOffset
 }
 
@@ -154,9 +154,10 @@ function buildTrack() {
 
 // - Position track -
 function positionTrack(idx, animated) {
+  updateMetrics() // always recalculate before positioning
   if (!animated) {
     carouselTrack.style.transition = 'none'
-    void carouselTrack.offsetWidth // force reflow
+    void carouselTrack.offsetWidth
   } else {
     carouselTrack.style.transition =
       'transform 0.35s cubic-bezier(0.4, 0, 0.2, 1)'
@@ -242,7 +243,7 @@ card.innerHTML = `
       const isFav = toggleFavourite(song.id)
       heartBtn.classList.toggle('active', isFav)
 
-      // If showing favourites and we just unfavourited — remove from view
+      // If showing favourites and we just unfavourited - remove from view
       if (showingFavourites && !isFav) {
         renderDrawerList(getFavouriteIndex())
       }
@@ -309,7 +310,7 @@ function renderLyrics(song) {
   const refrainAlt = song.lyrics.find(s => s.type === 'refrain-alt')
   const verses = song.lyrics.filter(s => s.type === 'verse')
 
-  // No refrain — render positionally as stored
+  // No refrain - render positionally as stored
   if (!refrain) {
     return song.lyrics.map(s => renderStanza(s)).join('')
   }

@@ -1,40 +1,33 @@
-import { auth }               from './firebase.js'
-import { onAuthStateChanged } from 'firebase/auth'
 import { getSongIndex, getSong } from './songs.js'
 import { signInWithGoogle }   from './auth.js'
 import { idbGet, idbSet }     from './cache.js'
 import { getFavourites, toggleFavourite, isFavourite } from './favourites.js'
+import { signInWithGoogle, signOutUser, verifyAdminRole } from './auth.js'
 
 // - Auth -
-onAuthStateChanged(auth, (user) => {
-  const adminBtn = document.getElementById('admin-link')
-  if (!adminBtn) return
-  adminBtn.style.display = 'block'
-  adminBtn.disabled = false
+adminBtn.onclick = async () => {
+  try {
+    adminBtn.textContent = 'Signing in...'
+    adminBtn.disabled    = true
+    const user = await signInWithGoogle()
 
-  if (user) {
-    adminBtn.textContent = '✓ Admin Panel'
-    adminBtn.classList.add('authenticated')
-    adminBtn.onclick = () => {
-      window.location.href =
-        `${import.meta.env.BASE_URL}pages/admin.html`
+    // Verify admin role before celebrating
+    const isAdmin = await verifyAdminRole(user.uid)
+    if (!isAdmin) {
+      // Sign them back out — they authenticated but aren't admin
+      await signOutUser()
+      adminBtn.textContent = 'Admin Sign In'
+      adminBtn.disabled    = false
+      alert('Sorry, this account does not have admin access.')
+      return
     }
-  } else {
+    // onAuthStateChanged will fire and update the button
+  } catch (err) {
+    console.error('Sign in failed:', err)
     adminBtn.textContent = 'Admin Sign In'
-    adminBtn.classList.remove('authenticated')
-    adminBtn.onclick = async () => {
-      try {
-        adminBtn.textContent = 'Signing in...'
-        adminBtn.disabled = true
-        await signInWithGoogle()
-      } catch (err) {
-        console.error('Sign in failed:', err)
-        adminBtn.textContent = 'Admin Sign In'
-        adminBtn.disabled = false
-      }
-    }
+    adminBtn.disabled    = false
   }
-})
+}
 
 // - Elements -
 const carouselTrack = document.getElementById('carousel-track')
@@ -111,6 +104,7 @@ let cardWidth = 320
 let cardGap = 16
 let centerOffset = 0
 
+// - Get actual card width from CSS variable -
 function getCardWidth() {
   // Evaluate --card-width CSS variable using a throwaway element
   // This bypasses any scale() transforms on actual cards
@@ -123,6 +117,7 @@ function getCardWidth() {
   return w
 }
 
+// - Update card metrics (called on init and window resize) -
 function updateMetrics() {
   cardWidth    = getCardWidth()
   cardGap      = parseFloat(
@@ -134,6 +129,7 @@ function updateMetrics() {
   console.log(`[metrics] cardWidth: ${cardWidth} | cardGap: ${cardGap} | areaWidth: ${carouselArea.getBoundingClientRect().width} | centerOffset: ${centerOffset} | step: ${cardWidth + cardGap}`)
 }
 
+// - Calculate track transform for a given index -
 function getTransformForIndex(idx) {
   const expected = -(idx * (cardWidth + cardGap)) + centerOffset
   console.log(`[transform] idx: ${idx} | cardWidth: ${cardWidth} | cardGap: ${cardGap} | step: ${cardWidth + cardGap} | centerOffset: ${centerOffset} | result: ${expected}`)
@@ -189,6 +185,16 @@ function updateCardClasses(center) {
   }
 }
 
+// - Update heart button state for a song ID (called after toggle) -
+function updateHeartState(songId) {
+  const cards = carouselTrack.querySelectorAll('.song-card')
+  cards.forEach(card => {
+    if (card.dataset.id !== songId) return
+    const btn = card.querySelector('.heart-btn')
+    if (btn) btn.classList.toggle('active', isFavourite(songId))
+  })
+}
+
 // - Fill a card shell with song data -
 function fillCard(card, song) {
   if (!song) return
@@ -199,7 +205,8 @@ function fillCard(card, song) {
   const tags = (song.tags || [])
     .map(t => `<span class="tag">${t}</span>`).join('')
 
-card.innerHTML = `
+  // Handle refrain and alt refrain for card body
+  card.innerHTML = `
   <div class="card-head">
     <div class="card-meta-top">
       <span class="card-type-pill pill-${song.type}">
@@ -216,47 +223,48 @@ card.innerHTML = `
     ${tags
       ? `<div class="card-tags">${tags}</div>`
       : ''}
-  </div>
-  <div class="card-body">
+    </div>
+    <div class="card-body">
     ${renderLyrics(song)}
-  </div>
-  <div class="card-footer">
+    </div>    
+    <div class="card-footer">
     <button class="heart-btn ${isFavourite(song.id) ? 'active' : ''}"
             data-id="${song.id}"
             aria-label="Add to favourites">
       <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor">
         <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.27 2 8.5
-                 2 5.41 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.08
-                 C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.41 22 8.5
-                 c0 3.77-3.4 6.86-8.55 11.53L12 21.35z"/>
+                  2 5.41 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.08
+                  C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.41 22 8.5
+                  c0 3.77-3.4 6.86-8.55 11.53L12 21.35z"/>
       </svg>
     </button>
     <button class="share-btn">Share song</button>
   </div>`
 
+  // Share button
   card.querySelector('.share-btn')
-    ?.addEventListener('click', (e) => {
-      e.stopPropagation()
-      const url =
-        `${window.location.origin}${import.meta.env.BASE_URL}?id=${song.id}`
-      navigator.clipboard.writeText(url).then(() => {
-        const btn = card.querySelector('.share-btn')
-        btn.textContent = 'Link copied!'
-        setTimeout(() => btn.textContent = 'Share song', 2000)
-      })
+  ?.addEventListener('click', (e) => {
+    e.stopPropagation()
+    const url =
+      `${window.location.origin}${import.meta.env.BASE_URL}?id=${song.id}`
+    navigator.clipboard.writeText(url).then(() => {
+      const btn = card.querySelector('.share-btn')
+      btn.textContent = 'Link copied!'
+      setTimeout(() => btn.textContent = 'Share song', 2000)
     })
+  })
 
+  // Heart button
   const heartBtn = card.querySelector('.heart-btn')
-    heartBtn.addEventListener('click', (e) => {
-      e.stopPropagation()
-      const isFav = toggleFavourite(song.id)
-      heartBtn.classList.toggle('active', isFav)
+  heartBtn.addEventListener('click', (e) => {
+    e.stopPropagation()
+    toggleFavourite(song.id)
+    updateHeartState(song.id)
 
-      // If showing favourites and we just unfavourited - remove from view
-      if (showingFavourites && !isFav) {
-        renderDrawerList(getFavouriteIndex())
-      }
-    })  
+    if (showingFavourites && !isFavourite(song.id)) {
+      renderDrawerList(getFavouriteIndex())
+    }
+  })
 }
 
 // - Get favourite songs for drawer -

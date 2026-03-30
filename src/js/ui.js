@@ -111,25 +111,27 @@ let cardWidth = 320
 let cardGap = 16
 let centerOffset = 0
 
-function updateMetrics() {
-  const first = carouselTrack.querySelector('.song-card')
-  if (first) {
-    const rect    = first.getBoundingClientRect()
-    const oldWidth = cardWidth
-    cardWidth     = rect.width
-    console.log(`[metrics] cardWidth: ${cardWidth} (was ${oldWidth}) | rect: ${JSON.stringify({left: rect.left, right: rect.right, width: rect.width})}`)
-  }
+function getCardWidth() {
+  // Evaluate --card-width CSS variable using a throwaway element
+  // This bypasses any scale() transforms on actual cards
+  const el = document.createElement('div')
+  el.style.cssText =
+    'width:var(--card-width);position:fixed;visibility:hidden;pointer-events:none;'
+  document.body.appendChild(el)
+  const w = el.getBoundingClientRect().width
+  document.body.removeChild(el)
+  return w
+}
 
-  cardGap = parseFloat(
+function updateMetrics() {
+  cardWidth    = getCardWidth()
+  cardGap      = parseFloat(
     getComputedStyle(document.documentElement)
       .getPropertyValue('--card-gap')
   ) || 16
+  centerOffset = (carouselArea.getBoundingClientRect().width - cardWidth) / 2
 
-  const areaRect = carouselArea.getBoundingClientRect()
-  const oldOffset = centerOffset
-  centerOffset   = (areaRect.width - cardWidth) / 2
-
-  console.log(`[metrics] cardGap: ${cardGap} | areaWidth: ${areaRect.width} | centerOffset: ${centerOffset} (was ${oldOffset}) | cardStep: ${cardWidth + cardGap}`)
+  console.log(`[metrics] cardWidth: ${cardWidth} | cardGap: ${cardGap} | areaWidth: ${carouselArea.getBoundingClientRect().width} | centerOffset: ${centerOffset} | step: ${cardWidth + cardGap}`)
 }
 
 function getTransformForIndex(idx) {

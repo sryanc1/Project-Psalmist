@@ -419,7 +419,7 @@ a.app-bar-title:hover {
   position: absolute;
   top: 50%;
   transform: translateY(-50%);
-  background: var(--color-ivory);
+  background: var(--color-candlelight);
   border: 0.5px solid var(--color-border);
   border-radius: 50%;
   width: 36px;

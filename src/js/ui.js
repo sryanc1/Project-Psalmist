@@ -1,5 +1,4 @@
 import { getSongIndex, getSong } from './songs.js'
-import { signInWithGoogle }   from './auth.js'
 import { idbGet, idbSet }     from './cache.js'
 import { getFavourites, toggleFavourite, isFavourite } from './favourites.js'
 import { signInWithGoogle, signOutUser, verifyAdminRole } from './auth.js'

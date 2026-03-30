@@ -3,6 +3,7 @@ import { onAuthStateChanged } from 'firebase/auth'
 import { getSongIndex, getSong } from './songs.js'
 import { signInWithGoogle }   from './auth.js'
 import { idbGet, idbSet }     from './cache.js'
+import { getFavourites, toggleFavourite, isFavourite } from './favourites.js'
 
 // - Auth -
 onAuthStateChanged(auth, (user) => {
@@ -57,6 +58,7 @@ let chorusIndex = null
 let fullIndex = []
 let windowCenter = 0
 let isAnimating = false
+let showingFavourites = false
 
 // - Three-tier cache -
 const memoryCache = new Map()
@@ -111,11 +113,21 @@ let centerOffset = 0
 
 function updateMetrics() {
   const first = carouselTrack.querySelector('.song-card')
-  if (first) cardWidth = first.offsetWidth
-  centerOffset = (carouselArea.offsetWidth - cardWidth) / 2
+  if (first) {
+    // Use precise fractional width — not rounded offsetWidth
+    cardWidth = first.getBoundingClientRect().width
+  }
+  // Read gap from CSS variable — single source of truth
+  cardGap = parseFloat(
+    getComputedStyle(document.documentElement)
+      .getPropertyValue('--card-gap')
+  ) || 16
+
+  centerOffset = (carouselArea.getBoundingClientRect().width - cardWidth) / 2
 }
 
 function getTransformForIndex(idx) {
+  // Use precise math — no rounding
   return -(idx * (cardWidth + cardGap)) + centerOffset
 }
 
@@ -177,30 +189,40 @@ function fillCard(card, song) {
   const tags = (song.tags || [])
     .map(t => `<span class="tag">${t}</span>`).join('')
 
-  card.innerHTML = `
-    <div class="card-head">
-      <div class="card-meta-top">
-        <span class="card-type-pill pill-${song.type}">
-          ${typeLabel} ${song.number}
-        </span>
-        ${song.key
-          ? `<span class="card-key-badge">${song.key}</span>`
-          : ''}
-      </div>
-      <h2 class="card-title">${song.title}</h2>
-      ${song.author
-        ? `<p class="card-author">${song.author}</p>`
-        : ''}
-      ${tags
-        ? `<div class="card-tags">${tags}</div>`
+card.innerHTML = `
+  <div class="card-head">
+    <div class="card-meta-top">
+      <span class="card-type-pill pill-${song.type}">
+        ${typeLabel} ${song.number}
+      </span>
+      ${song.key
+        ? `<span class="card-key-badge">${song.key}</span>`
         : ''}
     </div>
-    <div class="card-body">
-      ${renderLyrics(song)}
-    </div>
-    <div class="card-share">
-      <button class="share-btn">Share song</button>
-    </div>`
+    <h2 class="card-title">${song.title}</h2>
+    ${song.author
+      ? `<p class="card-author">${song.author}</p>`
+      : ''}
+    ${tags
+      ? `<div class="card-tags">${tags}</div>`
+      : ''}
+  </div>
+  <div class="card-body">
+    ${renderLyrics(song)}
+  </div>
+  <div class="card-footer">
+    <button class="heart-btn ${isFavourite(song.id) ? 'active' : ''}"
+            data-id="${song.id}"
+            aria-label="Add to favourites">
+      <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor">
+        <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.27 2 8.5
+                 2 5.41 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.08
+                 C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.41 22 8.5
+                 c0 3.77-3.4 6.86-8.55 11.53L12 21.35z"/>
+      </svg>
+    </button>
+    <button class="share-btn">Share song</button>
+  </div>`
 
   card.querySelector('.share-btn')
     ?.addEventListener('click', (e) => {
@@ -213,6 +235,24 @@ function fillCard(card, song) {
         setTimeout(() => btn.textContent = 'Share song', 2000)
       })
     })
+
+  const heartBtn = card.querySelector('.heart-btn')
+    heartBtn.addEventListener('click', (e) => {
+      e.stopPropagation()
+      const isFav = toggleFavourite(song.id)
+      heartBtn.classList.toggle('active', isFav)
+
+      // If showing favourites and we just unfavourited — remove from view
+      if (showingFavourites && !isFav) {
+        renderDrawerList(getFavouriteIndex())
+      }
+    })  
+}
+
+// - Get favourite songs for drawer -
+function getFavouriteIndex() {
+  const favIds = getFavourites()
+  return fullIndex.filter(s => favIds.includes(s.id))
 }
 
 // - Populate ±2 window -
@@ -490,30 +530,69 @@ tabBtns.forEach(btn => {
 
 // - Drawer list -
 function renderDrawerList(songs) {
+  const favCount = getFavourites().length
+
+  // Always show favourites toggle at top of drawer
+  const toggleHtml = `
+    <div class="drawer-filter-row">
+      <button id="fav-toggle" class="fav-toggle-btn ${showingFavourites ? 'active' : ''}">
+        <svg viewBox="0 0 24 24" width="13" height="13" fill="currentColor">
+          <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.27 2 8.5
+                   2 5.41 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.08
+                   C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.41 22 8.5
+                   c0 3.77-3.4 6.86-8.55 11.53L12 21.35z"/>
+        </svg>
+        Favourites
+        ${favCount > 0
+          ? `<span class="fav-count">${favCount}</span>`
+          : ''}
+      </button>
+    </div>`
+
+  // No songs - show message (but keep toggle visible)
   if (!songs || songs.length === 0) {
-    drawerList.innerHTML =
-      `<div class="state-message" style="color:#9A9690;">
-        No songs found.
+    drawerList.innerHTML = toggleHtml + `
+      <div class="state-message" style="color:#9A9690;">
+        ${showingFavourites
+          ? 'No favourites yet. Tap the heart on any song.'
+          : 'No songs found.'}
       </div>`
+    wireFavToggle()
     return
   }
-  drawerList.innerHTML = songs.map((song, i) => {
+
+  // Render songs 
+  drawerList.innerHTML = toggleHtml + songs.map((song, i) => {
     const globalIdx = fullIndex.findIndex(s => s.id === song.id)
+    const fav       = isFavourite(song.id)
     return `
       <div class="drawer-row ${globalIdx === windowCenter ? 'active' : ''}"
            data-index="${globalIdx}">
         <span class="drawer-num">${song.number}</span>
         <span class="drawer-song-title">${song.title}</span>
+        ${fav
+          ? `<svg class="drawer-heart" viewBox="0 0 24 24"
+                  width="11" height="11" fill="#C8860A">
+               <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.27 2 8.5
+                        2 5.41 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.08
+                        C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.41 22 8.5
+                        c0 3.77-3.4 6.86-8.55 11.53L12 21.35z"/>
+             </svg>`
+          : ''}
       </div>`
   }).join('')
 
+  // Wire up click handlers for each row to jump to song and close drawer on mobile
   drawerList.querySelectorAll('.drawer-row').forEach(row => {
     row.addEventListener('click', async () => {
       const idx = parseInt(row.dataset.index)
+      if (isNaN(idx) || idx < 0) return
       await jumpToIndex(idx)
       if (!isDesktop()) closeDrawer()
     })
   })
+
+  wireFavToggle()
 
   requestAnimationFrame(() => {
     const active = drawerList.querySelector('.drawer-row.active')
@@ -521,6 +600,21 @@ function renderDrawerList(songs) {
   })
 }
 
+// - Drawer favourites toggle -
+function wireFavToggle() {
+  const btn = document.getElementById('fav-toggle')
+  if (!btn) return
+  btn.addEventListener('click', () => {
+    showingFavourites = !showingFavourites
+    if (showingFavourites) {
+      renderDrawerList(getFavouriteIndex())
+    } else {
+      renderDrawerList(fullIndex)
+    }
+  })
+}
+
+// - Highlight current song in drawer -
 function updateDrawerHighlight() {
   drawerList.querySelectorAll('.drawer-row').forEach(row => {
     row.classList.toggle(

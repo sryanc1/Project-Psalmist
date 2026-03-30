@@ -301,6 +301,84 @@ a.app-bar-title:hover {
   transition: color var(--transition);
 }
 .share-btn:hover { color: var(--color-candlelight); }
+.card-footer {
+  flex-shrink: 0;
+  padding: 0.6rem 1.1rem;
+  border-top: 0.5px solid var(--color-border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+/* ── Heart button ── */
+.heart-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--color-border);
+  padding: 4px;
+  transition: color 0.2s ease, transform 0.15s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+}
+.heart-btn:hover {
+  color: #E24B4A;
+  transform: scale(1.15);
+}
+.heart-btn.active {
+  color: #E24B4A;
+}
+.heart-btn.active:hover {
+  transform: scale(1.2);
+}
+
+/* ── Drawer filter row ── */
+.drawer-filter-row {
+  padding: 8px 1rem;
+  border-bottom: 0.5px solid #2C2C2A;
+}
+
+.fav-toggle-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--font-sans);
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-muted);
+  background: none;
+  border: 0.5px solid #3A3835;
+  padding: 5px 12px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: all var(--transition);
+  width: 100%;
+}
+.fav-toggle-btn:hover {
+  border-color: #E24B4A;
+  color: #E24B4A;
+}
+.fav-toggle-btn.active {
+  background: #1a0a0a;
+  border-color: #E24B4A;
+  color: #E24B4A;
+}
+
+.fav-count {
+  margin-left: auto;
+  background: #E24B4A;
+  color: white;
+  font-size: 0.6rem;
+  font-weight: 700;
+  padding: 1px 6px;
+  border-radius: 10px;
+  min-width: 18px;
+  text-align: center;
+}
 
 /* - Lyrics - */
 .stanza {
@@ -568,6 +646,14 @@ a.app-bar-title:hover {
   background: #3B6D11;
   color: var(--color-ivory);
 }
+.drawer-filter-row {
+  padding: 8px 1rem;
+  border-bottom: 0.5px solid #2C2C2A;
+}
+.drawer-heart {
+  flex-shrink: 0;
+  margin-left: auto;
+}
 
 /* - State message - */
 .state-message {
@@ -617,6 +703,10 @@ a.app-bar-title:hover {
   .app-body {
     flex-direction: row;
     overflow: hidden;
+  }
+
+  .card-footer .share-btn {
+    font-size: 0.75rem;
   }
 
   /* - Persistent sidebar drawer - */
@@ -670,6 +760,7 @@ a.app-bar-title:hover {
     overflow: hidden;
   }
 
+  /* Tabs get smaller and more compact on desktop */
   .app-bar .tab-btn {
     padding: 5px 16px;
     font-size: 0.65rem;
@@ -677,6 +768,7 @@ a.app-bar-title:hover {
     border-radius: 0;
   }
 
+  /* Active tab gets candlelight background on desktop */
   .app-bar .tab-btn.active {
     background: var(--color-candlelight);
     color: var(--color-ivory);

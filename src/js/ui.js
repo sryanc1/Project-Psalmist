@@ -4,6 +4,7 @@ import { getFavourites, toggleFavourite, isFavourite } from './favourites.js'
 import { signInWithGoogle, signOutUser, verifyAdminRole } from './auth.js'
 
 // - Auth -
+const adminBtn = document.getElementById('admin-link')
 adminBtn.onclick = async () => {
   try {
     adminBtn.textContent = 'Signing in...'

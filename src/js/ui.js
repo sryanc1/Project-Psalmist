@@ -1,40 +1,33 @@
-import { auth }               from './firebase.js'
-import { onAuthStateChanged } from 'firebase/auth'
 import { getSongIndex, getSong } from './songs.js'
 import { signInWithGoogle }   from './auth.js'
 import { idbGet, idbSet }     from './cache.js'
 import { getFavourites, toggleFavourite, isFavourite } from './favourites.js'
+import { signInWithGoogle, signOutUser, verifyAdminRole } from './auth.js'
 
 // - Auth -
-onAuthStateChanged(auth, (user) => {
-  const adminBtn = document.getElementById('admin-link')
-  if (!adminBtn) return
-  adminBtn.style.display = 'block'
-  adminBtn.disabled = false
+adminBtn.onclick = async () => {
+  try {
+    adminBtn.textContent = 'Signing in...'
+    adminBtn.disabled    = true
+    const user = await signInWithGoogle()
 
-  if (user) {
-    adminBtn.textContent = '✓ Admin Panel'
-    adminBtn.classList.add('authenticated')
-    adminBtn.onclick = () => {
-      window.location.href =
-        `${import.meta.env.BASE_URL}pages/admin.html`
+    // Verify admin role before celebrating
+    const isAdmin = await verifyAdminRole(user.uid)
+    if (!isAdmin) {
+      // Sign them back out — they authenticated but aren't admin
+      await signOutUser()
+      adminBtn.textContent = 'Admin Sign In'
+      adminBtn.disabled    = false
+      alert('Sorry, this account does not have admin access.')
+      return
     }
-  } else {
+    // onAuthStateChanged will fire and update the button
+  } catch (err) {
+    console.error('Sign in failed:', err)
     adminBtn.textContent = 'Admin Sign In'
-    adminBtn.classList.remove('authenticated')
-    adminBtn.onclick = async () => {
-      try {
-        adminBtn.textContent = 'Signing in...'
-        adminBtn.disabled = true
-        await signInWithGoogle()
-      } catch (err) {
-        console.error('Sign in failed:', err)
-        adminBtn.textContent = 'Admin Sign In'
-        adminBtn.disabled = false
-      }
-    }
+    adminBtn.disabled    = false
   }
-})
+}
 
 // - Elements -
 const carouselTrack = document.getElementById('carousel-track')
@@ -159,6 +152,7 @@ function buildTrack() {
   requestAnimationFrame(() => {
     updateMetrics()
   })
+}
 
 // - Position track -
 function positionTrack(idx, animated) {

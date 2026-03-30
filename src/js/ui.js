@@ -159,14 +159,15 @@ function buildTrack() {
   requestAnimationFrame(() => {
     updateMetrics()
   })
-}
 
 // - Position track -
 function positionTrack(idx, animated) {
   updateMetrics() // always recalculate before positioning
+  // Disable animation for instant jumps (e.g. menu select), 
+  // but enable for swipe and arrow navigations
   if (!animated) {
     carouselTrack.style.transition = 'none'
-    void carouselTrack.offsetWidth
+    void carouselTrack.offsetWidth  
   } else {
     carouselTrack.style.transition =
       'transform 0.35s cubic-bezier(0.4, 0, 0.2, 1)'
@@ -182,11 +183,23 @@ function updateCardClasses(center) {
   const end = Math.min(fullIndex.length - 1, center + range)
   const cards = carouselTrack.querySelectorAll('.song-card')
 
+  // For cards within ±3 of center - add 'active' to center, 
+  // 'side' to others, and remove both from cards outside this range
   for (let i = start; i <= end; i++) {
     if (!cards[i]) continue
     cards[i].classList.toggle('active', i === center)
     cards[i].classList.toggle('side', i !== center)
   }
+}
+
+// - Update heart button state for a song ID (called after toggling favourite) -
+function updateHeartState(songId) {
+  const cards = carouselTrack.querySelectorAll('.song-card')
+  cards.forEach(card => {
+    if (card.dataset.id !== songId) return
+    const btn = card.querySelector('.heart-btn')
+    if (btn) btn.classList.toggle('active', isFavourite(songId))
+  })
 }
 
 // - Fill a card shell with song data -
@@ -199,7 +212,8 @@ function fillCard(card, song) {
   const tags = (song.tags || [])
     .map(t => `<span class="tag">${t}</span>`).join('')
 
-card.innerHTML = `
+  // Populate card HTML - includes heart button and share button
+  card.innerHTML = `
   <div class="card-head">
     <div class="card-meta-top">
       <span class="card-type-pill pill-${song.type}">
@@ -226,37 +240,42 @@ card.innerHTML = `
             aria-label="Add to favourites">
       <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor">
         <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.27 2 8.5
-                 2 5.41 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.08
-                 C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.41 22 8.5
-                 c0 3.77-3.4 6.86-8.55 11.53L12 21.35z"/>
+                2 5.41 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.08
+                C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.41 22 8.5
+                c0 3.77-3.4 6.86-8.55 11.53L12 21.35z"/>
       </svg>
     </button>
     <button class="share-btn">Share song</button>
   </div>`
 
+  // Share button - copy URL with song ID to clipboard
   card.querySelector('.share-btn')
-    ?.addEventListener('click', (e) => {
-      e.stopPropagation()
-      const url =
-        `${window.location.origin}${import.meta.env.BASE_URL}?id=${song.id}`
-      navigator.clipboard.writeText(url).then(() => {
-        const btn = card.querySelector('.share-btn')
-        btn.textContent = 'Link copied!'
-        setTimeout(() => btn.textContent = 'Share song', 2000)
-      })
+  ?.addEventListener('click', (e) => {
+    e.stopPropagation()
+    const url =
+      `${window.location.origin}${import.meta.env.BASE_URL}?id=${song.id}`
+    navigator.clipboard.writeText(url).then(() => {
+      const btn = card.querySelector('.share-btn')
+      btn.textContent = 'Link copied!'
+      setTimeout(() => btn.textContent = 'Share song', 2000)
     })
+  })
 
+  // Heart button - toggle favourite on click, and update state
   const heartBtn = card.querySelector('.heart-btn')
-    heartBtn.addEventListener('click', (e) => {
-      e.stopPropagation()
-      const isFav = toggleFavourite(song.id)
-      heartBtn.classList.toggle('active', isFav)
+  heartBtn.addEventListener('click', (e) => {
+    e.stopPropagation()
+    toggleFavourite(song.id)
+    updateHeartState(song.id)
 
-      // If showing favourites and we just unfavourited - remove from view
-      if (showingFavourites && !isFav) {
-        renderDrawerList(getFavouriteIndex())
-      }
-    })  
+    if (showingFavourites && !isFavourite(song.id)) {
+      renderDrawerList(getFavouriteIndex())
+    }
+  }) 
+
+  // Always sync heart state after rebuild
+  const btn = card.querySelector('.heart-btn')
+  if (btn) btn.classList.toggle('active', isFavourite(song.id))
 }
 
 // - Get favourite songs for drawer -

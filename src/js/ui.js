@@ -1,10 +1,41 @@
+import { auth }               from './firebase.js'
+import { onAuthStateChanged } from 'firebase/auth'
 import { getSongIndex, getSong } from './songs.js'
 import { idbGet, idbSet }     from './cache.js'
 import { getFavourites, toggleFavourite, isFavourite } from './favourites.js'
 import { signInWithGoogle, signOutUser, verifyAdminRole } from './auth.js'
 
 // - Auth -
-const adminBtn = document.getElementById('admin-link')
+onAuthStateChanged(auth, (user) => {
+  const adminBtn = document.getElementById('admin-link')
+  if (!adminBtn) return
+  adminBtn.style.display = 'block'
+  adminBtn.disabled = false
+
+  if (user) {
+    adminBtn.textContent = '✓ Admin Panel'
+    adminBtn.classList.add('authenticated')
+    adminBtn.onclick = () => {
+      window.location.href =
+        `${import.meta.env.BASE_URL}pages/admin.html`
+    }
+  } else {
+    adminBtn.textContent = 'Admin Sign In'
+    adminBtn.classList.remove('authenticated')
+    adminBtn.onclick = async () => {
+      try {
+        adminBtn.textContent = 'Signing in...'
+        adminBtn.disabled = true
+        await signInWithGoogle()
+      } catch (err) {
+        console.error('Sign in failed:', err)
+        adminBtn.textContent = 'Admin Sign In'
+        adminBtn.disabled = false
+      }
+    }
+  }
+})
+
 adminBtn.onclick = async () => {
   try {
     adminBtn.textContent = 'Signing in...'

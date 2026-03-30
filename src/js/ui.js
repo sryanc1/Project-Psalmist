@@ -114,21 +114,28 @@ let centerOffset = 0
 function updateMetrics() {
   const first = carouselTrack.querySelector('.song-card')
   if (first) {
-    // Use precise fractional width - not rounded offsetWidth
-    cardWidth = first.getBoundingClientRect().width
+    const rect    = first.getBoundingClientRect()
+    const oldWidth = cardWidth
+    cardWidth     = rect.width
+    console.log(`[metrics] cardWidth: ${cardWidth} (was ${oldWidth}) | rect: ${JSON.stringify({left: rect.left, right: rect.right, width: rect.width})}`)
   }
-  // Read gap from CSS variable - single source of truth
+
   cardGap = parseFloat(
     getComputedStyle(document.documentElement)
       .getPropertyValue('--card-gap')
   ) || 16
 
-  centerOffset = (carouselArea.getBoundingClientRect().width - cardWidth) / 2
+  const areaRect = carouselArea.getBoundingClientRect()
+  const oldOffset = centerOffset
+  centerOffset   = (areaRect.width - cardWidth) / 2
+
+  console.log(`[metrics] cardGap: ${cardGap} | areaWidth: ${areaRect.width} | centerOffset: ${centerOffset} (was ${oldOffset}) | cardStep: ${cardWidth + cardGap}`)
 }
 
 function getTransformForIndex(idx) {
-  // Use precise math - no rounding
-  return -(idx * (cardWidth + cardGap)) + centerOffset
+  const expected = -(idx * (cardWidth + cardGap)) + centerOffset
+  console.log(`[transform] idx: ${idx} | cardWidth: ${cardWidth} | cardGap: ${cardGap} | step: ${cardWidth + cardGap} | centerOffset: ${centerOffset} | result: ${expected}`)
+  return expected
 }
 
 // - Build full scaffold -
@@ -356,6 +363,15 @@ async function navigate(direction) {
 
   isAnimating = true
   windowCenter = newCenter
+
+  // Log actual vs expected position before moving
+  const currentTransform = new DOMMatrix(
+    getComputedStyle(carouselTrack).transform
+  ).m41
+  const expectedTransform = getTransformForIndex(windowCenter)
+  const drift = currentTransform - (expectedTransform + (direction * (cardWidth + cardGap)))
+
+  console.log(`[navigate] → ${windowCenter} | currentX: ${currentTransform.toFixed(3)} | expectedX: ${expectedTransform.toFixed(3)} | drift: ${drift.toFixed(3)}`)
 
   updateCardClasses(windowCenter)
   positionTrack(windowCenter, true)

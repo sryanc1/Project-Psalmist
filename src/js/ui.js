@@ -5,9 +5,34 @@ import { idbGet, idbSet }     from './cache.js'
 import { getFavourites, toggleFavourite, isFavourite } from './favourites.js'
 import { signInWithGoogle, signOutUser, verifyAdminRole } from './auth.js'
 
+// - Elements -
+const carouselTrack = document.getElementById('carousel-track')
+const carouselArea = document.getElementById('carousel-area')
+const navDotsEl = document.getElementById('nav-dots')
+const arrowPrev = document.getElementById('arrow-prev')
+const arrowNext = document.getElementById('arrow-next')
+const drawerOverlay = document.getElementById('drawer-overlay')
+const drawerList = document.getElementById('drawer-list')
+const drawerSearch = document.getElementById('drawer-search')
+const drawerToggle = document.getElementById('drawer-toggle')
+const drawerClose = document.getElementById('drawer-close')
+const drawerBackdrop = document.getElementById('drawer-backdrop')
+const tabBtns = document.querySelectorAll('.tab-btn')
+const drawerTabBtns = document.querySelectorAll('.drawer-tab')
+const adminBtn = document.getElementById('admin-link')
+
+
+// - State -
+let activeTab = 'choruses'
+let hymnIndex = null
+let chorusIndex = null
+let fullIndex = []
+let windowCenter = 0
+let isAnimating = false
+let showingFavourites = false
+
 // - Auth -
 onAuthStateChanged(auth, (user) => {
-  const adminBtn = document.getElementById('admin-link')
   if (!adminBtn) return
   adminBtn.style.display = 'block'
   adminBtn.disabled = false
@@ -59,30 +84,6 @@ adminBtn.onclick = async () => {
     adminBtn.disabled    = false
   }
 }
-
-// - Elements -
-const carouselTrack = document.getElementById('carousel-track')
-const carouselArea = document.getElementById('carousel-area')
-const navDotsEl = document.getElementById('nav-dots')
-const arrowPrev = document.getElementById('arrow-prev')
-const arrowNext = document.getElementById('arrow-next')
-const drawerOverlay = document.getElementById('drawer-overlay')
-const drawerList = document.getElementById('drawer-list')
-const drawerSearch = document.getElementById('drawer-search')
-const drawerToggle = document.getElementById('drawer-toggle')
-const drawerClose = document.getElementById('drawer-close')
-const drawerBackdrop = document.getElementById('drawer-backdrop')
-const tabBtns = document.querySelectorAll('.tab-btn')
-const drawerTabBtns = document.querySelectorAll('.drawer-tab')
-
-// - State -
-let activeTab = 'choruses'
-let hymnIndex = null
-let chorusIndex = null
-let fullIndex = []
-let windowCenter = 0
-let isAnimating = false
-let showingFavourites = false
 
 // - Three-tier cache -
 const memoryCache = new Map()

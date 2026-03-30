@@ -288,7 +288,7 @@ function fillCard(card, song) {
 
   // Heart button
   const heartBtn = card.querySelector('.heart-btn')
-  const handleHeartToggle = (e) => {
+  heartBtn.addEventListener('click', (e) => {
     e.stopPropagation()
     toggleFavourite(song.id)
     updateHeartState(song.id)
@@ -296,9 +296,7 @@ function fillCard(card, song) {
     if (showingFavourites && !isFavourite(song.id)) {
       renderDrawerList(getFavouriteIndex())
     }
-  }
-  heartBtn.addEventListener('click', handleHeartToggle)
-  heartBtn.addEventListener('touchend', handleHeartToggle)
+  })
 }
 
 // - Get favourite songs for drawer -

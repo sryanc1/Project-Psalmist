@@ -554,7 +554,6 @@ function openDrawer(animate = true) {
       drawerOverlay.style.transition = ''
     })
   }
-  if (!isDesktop()) drawerSearch.focus()
 }
 
 function closeDrawer() {

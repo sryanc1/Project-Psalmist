@@ -17,6 +17,7 @@
   --transition:  0.15s ease;
   --card-width:  min(350px, 78vw);
   --card-gap:    16px;
+  --text-scale:  1;
 }
 
 /* - Reset - */
@@ -85,6 +86,47 @@ a.app-bar-title {
 }
 a.app-bar-title:hover {
   opacity: 0.8;
+}
+
+/* - Text scale controls - */
+.text-scale-controls {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-left: auto;
+}
+
+.text-scale-btn {
+  background: none;
+  border: 0.5px solid var(--color-border);
+  color: var(--color-muted);
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: var(--radius-sm);
+  font-size: 0.85rem;
+  font-weight: 700;
+  transition: all var(--transition);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.text-scale-btn:hover {
+  border-color: var(--color-candlelight);
+  color: var(--color-candlelight);
+}
+
+.text-scale-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.text-scale-label {
+  font-size: 0.75rem;
+  color: var(--color-muted);
+  font-weight: 600;
+  min-width: 14px;
+  text-align: center;
 }
 
 /* - Piano accent - */
@@ -235,14 +277,14 @@ a.app-bar-title:hover {
 }
 .card-title {
   font-family: var(--font-serif);
-  font-size: 1.2rem;
+  font-size: calc(1.2rem * var(--text-scale));
   color: var(--color-ivory);
   font-weight: 400;
   line-height: 1.25;
   margin-bottom: 3px;
 }
 .card-author {
-  font-size: 0.75rem;
+  font-size: calc(0.75rem * var(--text-scale));
   color: var(--color-muted);
   font-style: italic;
   margin-bottom: 6px;
@@ -391,7 +433,7 @@ a.app-bar-title:hover {
 }
 .stanza-label {
   font-family: var(--font-sans);
-  font-size: 0.6rem;
+  font-size: calc(0.6rem * var(--text-scale));
   font-weight: 700;
   letter-spacing: 0.12em;
   text-transform: uppercase;
@@ -405,7 +447,7 @@ a.app-bar-title:hover {
 }
 .lyric-line {
   font-family: var(--font-serif);
-  font-size: 1rem;
+  font-size: calc(1rem * var(--text-scale));
   color: var(--color-charcoal);
   line-height: 1.75;
   display: block;

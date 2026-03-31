@@ -20,7 +20,43 @@ const drawerBackdrop = document.getElementById('drawer-backdrop')
 const tabBtns = document.querySelectorAll('.tab-btn')
 const drawerTabBtns = document.querySelectorAll('.drawer-tab')
 const adminBtn = document.getElementById('admin-link')
+const textScaleDecrease = document.getElementById('text-scale-decrease')
+const textScaleIncrease = document.getElementById('text-scale-increase')
 
+// - Text Scale -
+const MIN_TEXT_SCALE = 1
+const MAX_TEXT_SCALE = 1.5
+const TEXT_SCALE_STEP = 0.1
+
+let currentTextScale = parseFloat(localStorage.getItem('textScale')) || 1
+document.documentElement.style.setProperty('--text-scale', currentTextScale)
+
+function updateTextScaleButtons() {
+  textScaleDecrease.disabled = currentTextScale <= MIN_TEXT_SCALE
+  textScaleIncrease.disabled = currentTextScale >= MAX_TEXT_SCALE
+}
+
+textScaleDecrease.addEventListener('click', () => {
+  if (currentTextScale > MIN_TEXT_SCALE) {
+    currentTextScale = Math.max(MIN_TEXT_SCALE, currentTextScale - TEXT_SCALE_STEP)
+    currentTextScale = Math.round(currentTextScale * 10) / 10
+    document.documentElement.style.setProperty('--text-scale', currentTextScale)
+    localStorage.setItem('textScale', currentTextScale)
+    updateTextScaleButtons()
+  }
+})
+
+textScaleIncrease.addEventListener('click', () => {
+  if (currentTextScale < MAX_TEXT_SCALE) {
+    currentTextScale = Math.min(MAX_TEXT_SCALE, currentTextScale + TEXT_SCALE_STEP)
+    currentTextScale = Math.round(currentTextScale * 10) / 10
+    document.documentElement.style.setProperty('--text-scale', currentTextScale)
+    localStorage.setItem('textScale', currentTextScale)
+    updateTextScaleButtons()
+  }
+})
+
+updateTextScaleButtons()
 
 // - State -
 let activeTab = 'choruses'

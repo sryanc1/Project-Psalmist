@@ -25,6 +25,10 @@
 html { font-size: 16px; height: 100%; }
 body { font-family: var(--font-sans); height: 100%; overflow: hidden; }
 
+* {
+  -webkit-tap-highlight-color: transparent;
+}
+
 /* - App layout - */
 .app-body {
   display: flex;

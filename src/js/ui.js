@@ -199,7 +199,6 @@ function updateMetrics() {
 // - Calculate track transform for a given index -
 function getTransformForIndex(idx) {
   const expected = -(idx * (cardWidth + cardGap)) + centerOffset
-  console.log(`[transform] idx: ${idx} | cardWidth: ${cardWidth} | cardGap: ${cardGap} | step: ${cardWidth + cardGap} | centerOffset: ${centerOffset} | result: ${expected}`)
   return expected
 }
 

@@ -636,6 +636,12 @@ a.app-bar-title:hover {
   color: var(--color-muted);
   min-width: 24px;
   flex-shrink: 0;
+  transition: font-size 0.1s ease;
+}
+.drawer-num.touching {
+  font-size: 1.2rem;
+  color: #C8860A;
+  font-weight: bold;
 }
 .drawer-song-title {
   font-family: var(--font-serif);

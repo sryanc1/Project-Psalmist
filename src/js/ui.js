@@ -687,9 +687,17 @@ function renderDrawerList(songs) {
 
   // - Fast scroll on drawer-num touch -
   let fastScrollActive = false
+  let currentTouchingNum = null
+  let initialTouchY = 0
+  let initialScrollTop = 0
+  
   drawerList.querySelectorAll('.drawer-num').forEach(num => {
     num.addEventListener('touchstart', (e) => {
       fastScrollActive = true
+      currentTouchingNum = num
+      initialTouchY = e.touches[0].clientY
+      initialScrollTop = drawerList.scrollTop
+      num.classList.add('touching')
       e.preventDefault()
     })
     
@@ -697,15 +705,22 @@ function renderDrawerList(songs) {
       if (!fastScrollActive) return
       e.preventDefault()
       const touch = e.touches[0]
-      const drawerListRect = drawerList.getBoundingClientRect()
-      const proportion = (touch.clientY - drawerListRect.top) / drawerListRect.height
-      const clampedProportion = Math.max(0, Math.min(1, proportion))
-      const scrollPercent = (1 - clampedProportion) * 100
-      drawerList.scrollTop = (drawerList.scrollHeight - drawerList.clientHeight) * (scrollPercent / 100)
+      const deltaY = touch.clientY - initialTouchY
+      const scrollSensitivity = 3 // Adjust this to control scroll speed
+      const newScrollTop = initialScrollTop - (deltaY * scrollSensitivity)
+      const maxScroll = drawerList.scrollHeight - drawerList.clientHeight
+      const clampedScrollTop = Math.max(0, Math.min(newScrollTop, maxScroll))
+      
+      
+      drawerList.scrollTop = clampedScrollTop
     })
     
     num.addEventListener('touchend', () => {
+      if (currentTouchingNum) {
+        currentTouchingNum.classList.remove('touching')
+      }
       fastScrollActive = false
+      currentTouchingNum = null
     })
   })
 

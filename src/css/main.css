@@ -453,7 +453,7 @@ a.app-bar-title:hover {
   font-family: var(--font-serif);
   font-size: calc(1rem * var(--text-scale));
   color: var(--color-charcoal);
-  line-height: 1.75;
+  line-height: 1.4;
   display: block;
   /* Hanging indent — wrapped lines align under first word */
   padding-left: 1.25em;

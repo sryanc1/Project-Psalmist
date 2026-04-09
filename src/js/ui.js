@@ -194,7 +194,6 @@ function updateMetrics() {
   ) || 16
   centerOffset = (carouselArea.getBoundingClientRect().width - cardWidth) / 2
 
-  console.log(`[metrics] cardWidth: ${cardWidth} | cardGap: ${cardGap} | areaWidth: ${carouselArea.getBoundingClientRect().width} | centerOffset: ${centerOffset} | step: ${cardWidth + cardGap}`)
 }
 
 // - Calculate track transform for a given index -
@@ -683,6 +682,30 @@ function renderDrawerList(songs) {
       if (isNaN(idx) || idx < 0) return
       await jumpToIndex(idx)
       if (!isDesktop()) closeDrawer()
+    })
+  })
+
+  // - Fast scroll on drawer-num touch -
+  let fastScrollActive = false
+  drawerList.querySelectorAll('.drawer-num').forEach(num => {
+    num.addEventListener('touchstart', (e) => {
+      fastScrollActive = true
+      e.preventDefault()
+    })
+    
+    num.addEventListener('touchmove', (e) => {
+      if (!fastScrollActive) return
+      e.preventDefault()
+      const touch = e.touches[0]
+      const drawerListRect = drawerList.getBoundingClientRect()
+      const proportion = (touch.clientY - drawerListRect.top) / drawerListRect.height
+      const clampedProportion = Math.max(0, Math.min(1, proportion))
+      const scrollPercent = (1 - clampedProportion) * 100
+      drawerList.scrollTop = (drawerList.scrollHeight - drawerList.clientHeight) * (scrollPercent / 100)
+    })
+    
+    num.addEventListener('touchend', () => {
+      fastScrollActive = false
     })
   })
 

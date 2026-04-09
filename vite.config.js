@@ -6,9 +6,10 @@ export default defineConfig({
   base: '/Project-Psalmist/',
   publicDir: '../public',
   root: 'src',
+  envDir: '../',
   build: {
     outDir: '../dist',
-    emptyOutDir: true,
+    emptyOutDir: true,  
     rollupOptions: {
       input: {
         main:  resolve(__dirname, 'src/index.html'),

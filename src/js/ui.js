@@ -705,7 +705,7 @@ function renderDrawerList(songs) {
       e.preventDefault()
       const touch = e.touches[0]
       const deltaY = touch.clientY - initialTouchY
-      const scrollSensitivity = 3 // Adjust this to control scroll speed
+      const scrollSensitivity = 10 // Adjust this to control scroll speed
       const newScrollTop = initialScrollTop - (deltaY * scrollSensitivity)
       const maxScroll = drawerList.scrollHeight - drawerList.clientHeight
       const clampedScrollTop = Math.max(0, Math.min(newScrollTop, maxScroll))
